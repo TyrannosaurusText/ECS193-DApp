@@ -15,9 +15,10 @@
     "electron-oauth2": "^3.0.0",
     "googleapis": "^27.0.0",
     "moment": "^2.20.1",
-    "nodemailer": "^4.6.0"
+    "nodemailer": "^4.6.0",
+    "electron-settings": "^3.1.4"
   },
   "devDependencies": {
-    "electron-settings": "^3.1.4"
+    "electron-packager": "^11.1.0"
   }
 }

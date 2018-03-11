@@ -3,16 +3,16 @@ const settings = require('electron-settings');
 const poster = require('./utils/poster');
 const loginHandler = require('./login.js');
 
-const doctorSelect = document.getElementById('insert-patient-doctor-select');
-const insertBtn = document.getElementById('insert-patient');
-const form = document.getElementById('insert-patient-form');
-const sectionBtn = document.getElementById('button-insert-patient');
+const insertBtn = document.getElementById('insert-faculty');
+const form = document.getElementById('insert-faculty-form');
 
 insertBtn.addEventListener('click', function (event)
 {
     event.preventDefault();
     var fName = form[0].value;
     var fEmail = form[1].value;
+    var fAccType = form[2].value;
+
     if (fName == '')
     {
         console.log('Must enter a name.');
@@ -27,7 +27,7 @@ insertBtn.addEventListener('click', function (event)
     var postObj = {
         recipientEmail: fEmail,
         recipientName: fName,
-        newAccType: 'patient',
+        newAccType: fAccType,
         accessToken: settings.get('accessToken')
     };
 
@@ -76,7 +76,7 @@ function sendEmail (postObj)
     {
         res.setEncoding('utf8');
         res.on('data', function (body) {
-            var resDiv = document.getElementById('insert-patient-response');
+            var resDiv = document.getElementById('insert-faculty-response');
             resDiv.innerHTML = body;
         });
     }

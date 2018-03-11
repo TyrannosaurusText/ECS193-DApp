@@ -95,6 +95,7 @@ function ChartCSV (output)
             datasets: []
         },
         options: {
+            maintainAspectRatio: false,
             responsive: true,
             elements: {
                 line: {

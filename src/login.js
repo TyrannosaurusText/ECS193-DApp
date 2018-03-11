@@ -7,16 +7,13 @@ const electron = require('electron');
 const url = require('url');
 const path = require('path');
 
-const BrowserWindow = electron.remote.BrowserWindow;
-const ipc = electron.remote.ipcMain;
-
-var myApiOauth = null;
+var oauthClient = null;
+module.exports.oauthClient = oauthClient;
 
 function bindButtons ()
 {
     //console.log('Bind');
     document.getElementById('button-oauth-signin').addEventListener('click', signIn);
-    document.getElementById('button-test-email').addEventListener('click', testEmail);
 }
 
 function signIn ()
@@ -44,15 +41,15 @@ function signIn ()
     };
 
     try {
-        myApiOauth = electronOauth2(config, windowParams);
+        oauthClient = electronOauth2(config, windowParams);
 
-        myApiOauth.getAccessToken(options)
+        oauthClient.getAccessToken(options)
             .then(function (token) {
                 // use your token.access_token 
                 console.log(token);
                 settings.set('refreshToken', token.refresh_token);
     
-                myApiOauth.refreshToken(token.refresh_token)
+                oauthClient.refreshToken(token.refresh_token)
                     .then(function (newToken) {
                         //use your new token
                         console.log(newToken);
@@ -85,64 +82,5 @@ function tokenCB (res)
     });
 }
 
-var verifyWindow = null;
-function testEmail ()
-{
-    if (settings.get('email') == 'NULL')
-    {
-        console.log('Not logged in');
-        return;
-    }
-
-    var mailOptions = {
-        recipients: [{'Email':'Nicholas.Michael.Ng@gmail.com', 'Name':'Nicholas Ng'}],
-        subject: 'Account Activation',
-        text: '',
-        html: 'Account activation link would go <a href="www.google.com">here</a>.'
-    };
-
-    var postObj = {
-        mailOptions: mailOptions,
-        accessToken: settings.get('accessToken')
-    };
-
-    var validateTokenLink = '/oauth2/v1/tokeninfo?access_token=' + settings.get('accessToken');
-    poster.postWithHost({}, 'www.googleapis.com', validateTokenLink, tokenValidateForEmail);
-
-    function tokenValidateForEmail (res)
-    {
-        res.setEncoding('utf8');
-        res.on('data', function (body) {
-            var gRet = JSON.parse(body);
-            console.log(gRet);
-            var flag = gRet.hasOwnProperty('error');
-            if (!flag)
-                if (gRet.expires_in < 10)
-                    flag = true;
-
-            if (flag)
-            {
-                myApiOauth.refreshToken(settings.get('refreshToken'))
-                    .then(function (newToken) {
-                        settings.set('accessToken', newToken.access_token);
-                        postObj.accessToken = settings.get('accessToken');
-                        poster.post(postObj, '/token/sendEmail', emailCB)
-                    });
-            }
-            else
-            {
-                poster.post(postObj, '/token/sendEmail', emailCB)
-            }
-        });
-    }
-
-    function emailCB (res) 
-    {
-        res.setEncoding('utf8');
-        res.on('data', function (body) {
-            console.log(body);
-        });
-    }
-}
-
 module.exports.bindButtons = bindButtons;
+module.exports.oauthClient = oauthClient;
