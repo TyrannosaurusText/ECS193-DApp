@@ -13,12 +13,20 @@ module.exports.oauthClient = oauthClient;
 function bindButtons ()
 {
     //console.log('Bind');
-    document.getElementById('button-oauth-signin').addEventListener('click', signIn);
+    if (settings.get('email') == '')
+    {
+        document.getElementById('button-oauth-signin').innerHTML = 'Sign In with Google';
+        document.getElementById('button-oauth-signin').addEventListener('click', signIn);
+    }
+    else
+    {
+        document.getElementById('button-oauth-signin').innerHTML = 'Sign Out';
+        document.getElementById('button-oauth-signin').addEventListener('click', signOut);
+    }
 }
 
 function signIn ()
 {
-    settings.set('clientID', '671445578517-io87npos82nmk6bk24ttgikc9h4uls4l.apps.googleusercontent.com');
     var config = {
         clientId: settings.get('clientID'),
         authorizationUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
@@ -46,13 +54,13 @@ function signIn ()
         oauthClient.getAccessToken(options)
             .then(function (token) {
                 // use your token.access_token 
-                console.log(token);
+                //console.log(token);
                 settings.set('refreshToken', token.refresh_token);
     
                 oauthClient.refreshToken(token.refresh_token)
                     .then(function (newToken) {
                         //use your new token
-                        console.log(newToken);
+                        //console.log(newToken);
                         settings.set('accessToken', newToken.access_token);
     
                         var token = { idToken: newToken.id_token };
@@ -80,6 +88,19 @@ function tokenCB (res)
         settings.set('name', resObj.name);
         indexImporter.loadImports();
     });
+}
+
+function signOut ()
+{
+    oauthClient = null;
+
+    settings.set('accessToken', '');
+    settings.set('refreshToken', '');
+    settings.set('email', '');
+    settings.set('accType', '');
+    settings.set('name', '');
+
+    indexImporter.loadImports();
 }
 
 module.exports.bindButtons = bindButtons;

@@ -1,46 +1,30 @@
-var csvParse = require('csv-parse');
-var poster = require('./utils/poster');
-var chartjs = require('chart.js');
-var moment = require('moment');
-var globals = require('../assets/globals.js');
+const csvParse = require('csv-parse');
+const settings = require('electron-settings');
+const chartjs = require('chart.js');
+const moment = require('moment');
+const globals = require('../assets/globals.js');
+const poster = require('./utils/poster');
 
-var doctorSelect = document.getElementById('graph-patient-doctor-select');
-var patientList = document.getElementById('graph-patient-patient-id');
-var sectionBtn = document.getElementById('button-graph-patient');
-var graphBtn = document.getElementById('graph-patient-display-chart');
+var patientList = null;
+var sectionBtn = null;
+var graphBtn = null;
 
-sectionBtn.addEventListener('click', GatherDoctorList);
-function GatherDoctorList ()
+function Bind () 
 {
-    var postobj = {};
-    poster.post(postobj, '/fetch/doctors', function (res) {
-        res.setEncoding('utf8');
-        res.on('data', function (body) {
-            doctorSelect.innerHTML = '';
-            patientList.innerHTML = '';
+    sectionBtn = document.getElementById('button-graph-patient');
+    sectionBtn.addEventListener('click', GatherPatientList);
 
-            var opt = document.createElement('option');
-            opt.value = 'NULL';
-            opt.innerHTML = '--Select--';
-            doctorSelect.appendChild(opt);
+    patientList = document.getElementById('graph-patient-patient-id');
 
-            var dlist = JSON.parse(body);
-            Array.prototype.forEach.call(dlist, function (d) {
-                opt = document.createElement('option');
-                opt.value = d;
-                opt.innerHTML = d;
-                doctorSelect.appendChild(opt);
-            });
-        });
-    });
+    graphBtn = document.getElementById('graph-patient-display-chart');
+    graphBtn.addEventListener('click', GraphPatientData);
+
+    console.log('hello');
 }
 
 function GatherPatientList ()
 {
-    var postobj = { doctor: doctorSelect.value };
-
-    if (doctorSelect.value == '' || doctorSelect.value == 'NULL')
-        return;
+    var postobj = { doctor: settings.get('email') };
 
     poster.post(postobj, '/fetch/doctorList', function (res) {
         res.setEncoding('utf8');
@@ -57,22 +41,28 @@ function GatherPatientList ()
     });
 }
 
-graphBtn.addEventListener('click', GraphPatientData);
 function GraphPatientData (event)
 {
     event.preventDefault();
-    if (doctorSelect.value == '' || doctorSelect.value == 'NULL' || patientList.value == '')
+    if (patientList.value == '')
         return;
 
     var postobj = { id: patientList.value };
+
+    var readings = '';
     poster.post(postobj, '/fetch/readings', function (res) {
         res.setEncoding('utf8');
         res.on('data', function (body) {
-
+            readings += body;
+        });
+        res.on('end', function () {
             var area = document.getElementById('graph-patient-chart-area');
             area.innerHTML = '';
 
-            var csv = csvParse(body, { comment: '#' }, function (err, output) {
+            //console.log(readings);
+
+            var csv = csvParse(readings, { comment: '#' }, function (err, output) {
+                console.log(err);
                 ChartCSV(output);
                 ShowTable(output);
             });
@@ -82,6 +72,8 @@ function GraphPatientData (event)
 
 function ChartCSV (output)
 {
+    console.log(output);
+
     var area = document.getElementById('graph-patient-chart-area');
     var canvas = document.createElement('canvas');
     canvas.id = 'graph-patient-chart';
@@ -102,9 +94,9 @@ function ChartCSV (output)
                     tension: 0.1
                 }
             },
-            title:{
+            title: {
                 display: true,
-                text: doctorSelect.value + ': Patient ' + patientList.value
+                text: settings.get('name') + ': Patient ' + patientList.value
             },
             tooltips: {
                 mode: 'index',
@@ -155,7 +147,8 @@ function ChartCSV (output)
             backgroundColor: globals.channelColors[i],
             borderColor: globals.channelColors[i],
             data: [],
-            fill: false
+            fill: false,
+            hidden: true
         };
         config.data.datasets.push(datasetObj);
     }
@@ -180,7 +173,7 @@ function ChartCSV (output)
 
 function ShowTable (output)
 {
-    var area = document.getElementById('graph-patient-chart-area');
+    var area = document.getElementById('graph-patient-table-area');
     var table = document.createElement('table');
     table.id = 'graph-patient-table';
     area.appendChild(table);
@@ -212,3 +205,4 @@ function ShowTable (output)
 
 module.exports.GatherPatientList = GatherPatientList;
 module.exports.GraphPatientData = GraphPatientData;
+module.exports.Bind = Bind;

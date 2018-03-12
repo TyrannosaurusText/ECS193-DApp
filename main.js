@@ -11,9 +11,10 @@ var win = null;
 
 app.on('ready', function ()
 {
+    settings.set('clientID', '671445578517-io87npos82nmk6bk24ttgikc9h4uls4l.apps.googleusercontent.com');
     settings.set('accessToken', '');
     settings.set('refreshToken', '');
-    settings.set('email', 'NULL');
+    settings.set('email', '');
     settings.set('accType', '');
     settings.set('name', '');
 

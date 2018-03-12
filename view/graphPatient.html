@@ -5,19 +5,21 @@
         </header>
         <div>
             <form id="graph-patient-form1">
-                Doctor's Name: <select id="graph-patient-doctor-select" onchange="GatherPatientList()"></select>
-                Patient ID: <select id="graph-patient-patient-id" onload="Test()"></select>
+                Patient ID: <select id="graph-patient-patient-id"></select>
                 <button id="graph-patient-display-chart">Graph</button>
             </form>
         </div>
-        <div id="graph-patient-chart-area">
+        <div id="graph-patient-chart-area" class="graph-patient-chart-area">
+            
+        </div>
+        <div id="graph-patient-table-area" class="graph-patient-table-area">
             
         </div>
         <script>
             var gp = require('./src/graphPatient');
             function GatherPatientList () { gp.GatherPatientList(); }
             function GraphPatientData () { gp.GraphPatientData(); }
-            function Test () { console.log('test'); }
+            gp.Bind();
         </script>
     </section>
 </template>

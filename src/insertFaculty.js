@@ -36,7 +36,7 @@ insertBtn.addEventListener('click', function (event)
 
 function sendEmail (postObj)
 {
-    if (settings.get('email') == 'NULL')
+    if (settings.get('email') == '')
     {
         console.log('Not logged in');
         return;
