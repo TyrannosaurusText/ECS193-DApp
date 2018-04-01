@@ -28,20 +28,25 @@ insertBtn.addEventListener('click', function (event)
         recipientEmail: fEmail,
         recipientName: fName,
         newAccType: fAccType,
-        accessToken: settings.get('accessToken')
+        authCode: settings.get('authCode')
     };
 
-    sendEmail(postObj);
+    poster.post(postObj, '/account/sendEmail', emailCB);
+
+    function emailCB (cbRes)
+    {
+        cbRes.setEncoding('utf8');
+        cbRes.on('data', (cbBody) => {
+            var resDiv = document.getElementById('insert-faculty-response');
+            resDiv.innerHTML = body;
+        });
+    }
+
+    //sendEmail(postObj);
 });
 
 function sendEmail (postObj)
 {
-    if (settings.get('email') == '')
-    {
-        console.log('Not logged in');
-        return;
-    }
-
     var validateTokenLink = '/oauth2/v1/tokeninfo?access_token=' + settings.get('accessToken');
     poster.postWithHost({}, 'www.googleapis.com', validateTokenLink, tokenValidateForEmail);
 
@@ -71,6 +76,8 @@ function sendEmail (postObj)
             }
         });
     }
+
+    poster.post(postObj, '/token/sendEmail', emailCB)
 
     function emailCB (res) 
     {

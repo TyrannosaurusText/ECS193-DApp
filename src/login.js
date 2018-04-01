@@ -6,13 +6,19 @@ const nodemailer = require('nodemailer');
 const electron = require('electron');
 const url = require('url');
 const path = require('path');
+const ipc = require('electron').ipcRenderer;
 
 var oauthClient = null;
 module.exports.oauthClient = oauthClient;
 
+ipc.on('close', (event, message) => {
+    if (settings.get('signedIn'))
+        signOut();
+});
+
 function bindButtons ()
 {
-    //console.log('Bind');
+    console.log('Bind');
     if (settings.get('email') == '')
     {
         document.getElementById('button-oauth-signin').innerHTML = 'Sign In with Google';
@@ -52,56 +58,74 @@ function signIn ()
         oauthClient = electronOauth2(config, windowParams);
 
         oauthClient.getAccessToken(options)
-            .then(function (token) {
-                // use your token.access_token 
-                //console.log(token);
-                settings.set('refreshToken', token.refresh_token);
-    
-                oauthClient.refreshToken(token.refresh_token)
-                    .then(function (newToken) {
-                        //use your new token
-                        //console.log(newToken);
-                        settings.set('accessToken', newToken.access_token);
-    
-                        var token = { idToken: newToken.id_token };
-                        poster.post(token, '/check/token', tokenCB);
+            .then(function (tokens) {
+                //console.log(tokens);
 
-                        var testObj = [];
-                        testObj[newToken.access_token] = 'yes';
-                        console.log(testObj);
-                    });
+                var token = {accessToken: tokens.access_token};
+                poster.post(token, '/security/getAuth', authCB);
+
+                var testObj = [];
+                testObj[tokens.access_token] = '';
+                //console.log(testObj);
             });
     }
     catch (e) {
         console.log(e);
     }
-}
 
-function tokenCB (res)
-{
-    res.setEncoding('utf8');
-    res.on('data', function (body) {
-        console.log(body);
-        var resObj = JSON.parse(body);
-        settings.set('email', resObj.email);
-        settings.set('accType', resObj.accType);
-        settings.set('name', resObj.name);
-        indexImporter.loadImports();
-    });
+    function authCB (res)
+    {
+        res.setEncoding('utf8');
+        res.on('data', function (body) {
+            var resObj = JSON.parse(body);
+            if (!resObj.hasOwnProperty('err'))
+            {
+                console.log(resObj);
+                settings.set('email', resObj.email);
+                settings.set('accType', resObj.accType);
+                settings.set('name', resObj.name);
+                settings.set('authCode', resObj.authCode);
+                settings.set('signedIn', true);
+                indexImporter.loadImports();
+                oauthClient = null;
+            }
+            else
+                console.log('Error: ' + body);
+        });
+    }
 }
 
 function signOut ()
 {
-    oauthClient = null;
+    var postObj = {
+        email: settings.get('email'),
+        authCode: settings.get('authCode'),
+        accType: settings.get('accType')
+    };
+    poster.post(postObj, '/security/revokeAuth', revokeCB);
 
-    settings.set('accessToken', '');
-    settings.set('refreshToken', '');
-    settings.set('email', '');
-    settings.set('accType', '');
-    settings.set('name', '');
+    function revokeCB (res)
+    {
+        res.setEncoding('utf8');
+        res.on('data', function (body) {
+            var data = JSON.parse(body);
+            if (data.hasOwnProperty('err'))
+            {
+                console.log('Error on revoke: ' + data.err);
+                return;
+            }
 
-    indexImporter.loadImports();
+            settings.set('authCode', '');
+            settings.set('email', '');
+            settings.set('accType', '');
+            settings.set('name', '');
+            settings.set('signedIn', false);
+        
+            indexImporter.loadImports();
+        });
+    }
 }
 
 module.exports.bindButtons = bindButtons;
 module.exports.oauthClient = oauthClient;
+module.exports.signOut = signOut;

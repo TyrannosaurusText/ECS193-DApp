@@ -18,13 +18,13 @@ function Bind ()
 
     graphBtn = document.getElementById('graph-patient-display-chart');
     graphBtn.addEventListener('click', GraphPatientData);
-
-    console.log('hello');
 }
 
 function GatherPatientList ()
 {
-    var postobj = { doctor: settings.get('email') };
+    var postobj = { 
+        authCode: settings.get('authCode') 
+    };
 
     poster.post(postobj, '/fetch/doctorList', function (res) {
         res.setEncoding('utf8');
@@ -47,7 +47,10 @@ function GraphPatientData (event)
     if (patientList.value == '')
         return;
 
-    var postobj = { id: patientList.value };
+    var postobj = { 
+        authCode: settings.get('authCode'),
+        id: patientList.value 
+    };
 
     var readings = '';
     poster.post(postobj, '/fetch/readings', function (res) {
