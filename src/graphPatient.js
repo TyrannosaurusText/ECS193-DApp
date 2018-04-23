@@ -4,6 +4,7 @@ const chartjs = require('chart.js');
 const moment = require('moment');
 const globals = require('../assets/globals.js');
 const poster = require('./utils/poster');
+const crypto = require('crypto');
 
 var patientList = null;
 var sectionBtn = null;
@@ -11,6 +12,7 @@ var graphBtn = null;
 
 function Bind () 
 {
+    //console.log('BindGraphPatient');
     sectionBtn = document.getElementById('button-graph-patient');
     sectionBtn.addEventListener('click', GatherPatientList);
 
@@ -26,17 +28,13 @@ function GatherPatientList ()
         authCode: settings.get('authCode') 
     };
 
-    poster.post(postobj, '/fetch/doctorList', function (res) {
-        res.setEncoding('utf8');
-        res.on('data', function (body) {
-            patientList.innerHTML = '';
-            var plist = JSON.parse(body);
-            Array.prototype.forEach.call(plist, function (p) {
-                var opt = document.createElement('option');
-                opt.value = p;
-                opt.innerHTML = p;
-                patientList.appendChild(opt);
-            });
+    poster.post(postobj, '/fetch/doctorList', function (resObj) {
+        patientList.innerHTML = '';
+        Array.prototype.forEach.call(resObj, function (p) {
+            var opt = document.createElement('option');
+            opt.value = p;
+            opt.innerHTML = p;
+            patientList.appendChild(opt);
         });
     });
 }
@@ -52,23 +50,16 @@ function GraphPatientData (event)
         id: patientList.value 
     };
 
-    var readings = '';
-    poster.post(postobj, '/fetch/readings', function (res) {
-        res.setEncoding('utf8');
-        res.on('data', function (body) {
-            readings += body;
-        });
-        res.on('end', function () {
-            var area = document.getElementById('graph-patient-chart-area');
-            area.innerHTML = '';
+    poster.post(postobj, '/fetch/readings', function (resObj) {
+        var area = document.getElementById('graph-patient-chart-area');
+        area.innerHTML = '';
 
-            //console.log(readings);
+        //console.log(readings);
 
-            var csv = csvParse(readings, { comment: '#' }, function (err, output) {
-                console.log(err);
-                ChartCSV(output);
-                ShowTable(output);
-            });
+        var csv = csvParse(resObj.csv, { comment: '#' }, function (err, output) {
+            console.log(err);
+            ChartCSV(output);
+            ShowTable(output);
         });
     });
 }

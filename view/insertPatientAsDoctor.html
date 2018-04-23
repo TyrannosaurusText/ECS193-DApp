@@ -1,20 +1,21 @@
 <template class="task-template-doctor">
-    <section id="section-insert-patient" class="section js-section">
+    <section id="section-insert-patient-as-doctor" class="section js-section">
         <header>
             <h1>Insert Patient</h1>
         </header>
         <div>
-            <form id="insert-patient-form">
+            <form id="insert-patient-as-doctor-form">
                 Name: <input type="text" name="name"><br>
                 Email: <input type="email" name="email"><br>
             </form>
-            <button id="insert-patient">Send Activation Link</button>
+            <button id="insert-patient-as-doctor">Send Activation Link</button>
         </div>
-        <div id="insert-patient-response">
+        <div id="insert-patient-as-doctor-response">
             
         </div>
         <script>
-            require('./src/insertPatient');
+            var ipad = require('./src/insertPatientAsDoctor');
+            ipad.Bind();
         </script>
     </section>
 </template>

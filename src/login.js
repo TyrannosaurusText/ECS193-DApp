@@ -1,19 +1,16 @@
 const electronOauth2 = require('electron-oauth2');
 const poster = require('./utils/poster.js');
+const loginHandler = require('./utils/loginHandler.js');
 const indexImporter = require('../assets/imports.js');
 const settings = require('electron-settings');
-const nodemailer = require('nodemailer');
 const electron = require('electron');
-const url = require('url');
-const path = require('path');
 const ipc = require('electron').ipcRenderer;
 
 var oauthClient = null;
-module.exports.oauthClient = oauthClient;
 
 ipc.on('close', (event, message) => {
     if (settings.get('signedIn'))
-        signOut();
+        loginHandler.signOut();
 });
 
 function bindButtons ()
@@ -22,17 +19,18 @@ function bindButtons ()
     if (settings.get('email') == '')
     {
         document.getElementById('button-oauth-signin').innerHTML = 'Sign In with Google';
-        document.getElementById('button-oauth-signin').addEventListener('click', signIn);
+        document.getElementById('button-oauth-signin').addEventListener('click', loginHandler.signIn);
     }
     else
     {
         document.getElementById('button-oauth-signin').innerHTML = 'Sign Out';
-        document.getElementById('button-oauth-signin').addEventListener('click', signOut);
+        document.getElementById('button-oauth-signin').addEventListener('click', loginHandler.signOut);
     }
 }
 
 function signIn ()
 {
+    /*
     var config = {
         clientId: settings.get('clientID'),
         authorizationUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
@@ -93,10 +91,12 @@ function signIn ()
                 console.log('Error: ' + body);
         });
     }
+    */
 }
 
 function signOut ()
 {
+    /*
     var postObj = {
         email: settings.get('email'),
         authCode: settings.get('authCode'),
@@ -124,6 +124,7 @@ function signOut ()
             indexImporter.loadImports();
         });
     }
+    */
 }
 
 module.exports.bindButtons = bindButtons;

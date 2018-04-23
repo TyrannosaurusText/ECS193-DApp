@@ -33,58 +33,9 @@ insertBtn.addEventListener('click', function (event)
 
     poster.post(postObj, '/account/sendEmail', emailCB);
 
-    function emailCB (cbRes)
+    function emailCB (resObj)
     {
-        cbRes.setEncoding('utf8');
-        cbRes.on('data', (cbBody) => {
-            var resDiv = document.getElementById('insert-faculty-response');
-            resDiv.innerHTML = body;
-        });
+        var resDiv = document.getElementById('insert-faculty-response');
+        resDiv.innerHTML = JSON.stringify(resObj);
     }
-
-    //sendEmail(postObj);
 });
-
-function sendEmail (postObj)
-{
-    var validateTokenLink = '/oauth2/v1/tokeninfo?access_token=' + settings.get('accessToken');
-    poster.postWithHost({}, 'www.googleapis.com', validateTokenLink, tokenValidateForEmail);
-
-    function tokenValidateForEmail (res)
-    {
-        res.setEncoding('utf8');
-        res.on('data', function (body) {
-            var gRet = JSON.parse(body);
-            console.log(gRet);
-            var flag = gRet.hasOwnProperty('error');
-            if (!flag)
-                if (gRet.expires_in < 10)
-                    flag = true;
-
-            if (flag)
-            {
-                loginHandler.oauthClient.refreshToken(settings.get('refreshToken'))
-                    .then(function (newToken) {
-                        settings.set('accessToken', newToken.access_token);
-                        postObj.accessToken = settings.get('accessToken');
-                        poster.post(postObj, '/token/sendEmail', emailCB)
-                    });
-            }
-            else
-            {
-                poster.post(postObj, '/token/sendEmail', emailCB)
-            }
-        });
-    }
-
-    poster.post(postObj, '/token/sendEmail', emailCB)
-
-    function emailCB (res) 
-    {
-        res.setEncoding('utf8');
-        res.on('data', function (body) {
-            var resDiv = document.getElementById('insert-faculty-response');
-            resDiv.innerHTML = body;
-        });
-    }
-}
