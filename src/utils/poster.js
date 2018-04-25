@@ -26,8 +26,8 @@ function post (postobj, postpath, callback)
         var concat = '';
         res.setEncoding('utf8');
         res.on('data', (body) => {
-            console.log('Data Body:');
-            console.log(body);
+            //console.log('Data Body:');
+            //console.log(body);
             concat += body;
         });
         res.on('end', () => {

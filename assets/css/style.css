@@ -103,6 +103,20 @@ html {
 
 /*Doctor Info*/
 
+.doctor-info-view {
+    position: absolute;
+    top: 50;
+
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+}
+.doctor-info-view.is-shown {
+    pointer-events: auto;
+    visibility: visible;
+    opacity: 1;
+}
+
 .doctor-info-table-area {
     width: auto;
     overflow-x: scroll;
@@ -113,8 +127,16 @@ table#doctor-info-table {
     width: 100%;
     border: 1px solid var(--color-border);
 }
+table#doctor-info-patient-table {
+    width: 100%;
+    border: 1px solid var(--color-border);
+}
 
 table#doctor-info-table th {
+    text-align: left;
+    padding: 3px;
+}
+table#doctor-info-patient-table th {
     text-align: left;
     padding: 3px;
 }
@@ -123,8 +145,15 @@ table#doctor-info-table td {
     text-align: left;
     padding: 3px;
 }
+table#doctor-info-patient-table td {
+    text-align: left;
+    padding: 3px;
+}
 
 table#doctor-info-table tr:nth-child(even) {
+    background-color: var(--color-bg);
+}
+table#doctor-info-patient-table tr:nth-child(even) {
     background-color: var(--color-bg);
 }
 

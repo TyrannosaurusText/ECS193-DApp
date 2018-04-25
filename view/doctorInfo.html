@@ -1,13 +1,23 @@
 <template class="task-template-admin">
     <section id="section-doctor-info" class="section js-section">
         <header>
-            <h1>Doctor Information</h1>
+            <h1 id="doctor-info-header">Doctor Information</h1>
         </header>
-        <div id="doctor-info-avgs">
+        <div class="doctor-info-view is-shown" id="doctor-info-list-view">
+            <div id="doctor-info-avgs">
 
+            </div>
+            <div id="doctor-info-table-area" class="doctor-info-table-area">
+                
+            </div>
         </div>
-        <div id="doctor-info-table-area" class="doctor-info-table-area">
-            
+        <div class="doctor-info-view" id="doctor-info-doctor-view">
+            <button id="doctor-info-back-btn">Go Back</button>
+            <button id="doctor-info-remove-doc-btn">Remove Doctor</button>
+            <h3>Patients</h3>
+            <div id="doctor-info-patient-area" class="doctor-info-table-area">
+                
+            </div>
         </div>
         <script>
             var di = require('./src/doctorInfo');
