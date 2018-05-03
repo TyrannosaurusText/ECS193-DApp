@@ -123,38 +123,12 @@ html {
     white-space: nowrap;
 }
 
-table#doctor-info-table {
-    width: 100%;
-    border: 1px solid var(--color-border);
-}
-table#doctor-info-patient-table {
-    width: 100%;
-    border: 1px solid var(--color-border);
-}
+/*Unassigned Patients*/
 
-table#doctor-info-table th {
-    text-align: left;
-    padding: 3px;
-}
-table#doctor-info-patient-table th {
-    text-align: left;
-    padding: 3px;
-}
-
-table#doctor-info-table td {
-    text-align: left;
-    padding: 3px;
-}
-table#doctor-info-patient-table td {
-    text-align: left;
-    padding: 3px;
-}
-
-table#doctor-info-table tr:nth-child(even) {
-    background-color: var(--color-bg);
-}
-table#doctor-info-patient-table tr:nth-child(even) {
-    background-color: var(--color-bg);
+.unassigned-table-area {
+    width: auto;
+    overflow-x: scroll;
+    white-space: nowrap;
 }
 
 /*Patient Graph*/
@@ -170,21 +144,23 @@ table#doctor-info-patient-table tr:nth-child(even) {
     white-space: nowrap;
 }
 
-table#graph-patient-table {
+/*Tables*/
+
+table {
     width: 100%;
     border: 1px solid var(--color-border);
 }
 
-table#graph-patient-table th {
+table th {
     text-align: left;
     padding: 3px;
 }
 
-table#graph-patient-table td {
+table td {
     text-align: left;
     padding: 3px;
 }
 
-table#graph-patient-table tr:nth-child(even) {
+table tr:nth-child(even) {
     background-color: var(--color-bg);
 }

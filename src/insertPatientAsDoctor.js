@@ -1,7 +1,6 @@
 const electron = require('electron');
 const settings = require('electron-settings');
 const poster = require('./utils/poster');
-const loginHandler = require('./login.js');
 
 var insertBtn = null;
 var form = null;

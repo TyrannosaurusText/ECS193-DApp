@@ -15,7 +15,7 @@ var doctorAmt = 0;
 var sectionBtn = null;
 var viewing = '';
 var patients = [];
-var curPatient = '';
+var curPatient = null;
 
 function Bind ()
 {
@@ -23,13 +23,15 @@ function Bind ()
     sectionBtn = document.getElementById('button-doctor-info');
     sectionBtn.addEventListener('click', GatherDoctors);
 
-    document.getElementById('doctor-info-back-btn').addEventListener('click', ReturnToList);
+    document.getElementById('doctor-info-back-btn').addEventListener('click', ReturnToListBtn);
     document.getElementById('doctor-info-remove-doc-btn').addEventListener('click', RemoveDoctorPrompt);
 }
 
 function GatherDoctors ()
 {
-    //console.log('Gather');
+    if (viewing != '')
+        ReturnToList('GatherDoctors');
+
     patientAmt = 0;
     doctorAmt = 0;
 
@@ -50,7 +52,7 @@ function GatherDoctors ()
                 patientCount: 0
             };
         });
-        //console.log(doctors);
+        
         ReadPatients();
     });
 }
@@ -78,6 +80,7 @@ function MakeTable ()
     var area = document.getElementById('doctor-info-table-area');
     var table = document.createElement('table');
     table.id = 'doctor-info-table';
+    area.innerHTML = '';
     area.appendChild(table);
 
     var inner = '<tr><th>Family Name</th><th>Given Name</th><th>Email</th><th>Patient Amount</th><th></th></tr>';
@@ -85,13 +88,16 @@ function MakeTable ()
     {
         if (d == '')
             continue;
-        console.log('Doctor:');
-        console.log(d);
+        var doc = {
+            familyName: doctors[d].familyName,
+            givenName: doctors[d].givenName,
+            email: d
+        };
         inner += '<tr><td>' + doctors[d].familyName 
                + '</td><td>' + doctors[d].givenName
                + '</td><td>' + d 
                + '</td><td>' + doctors[d].patientCount
-               + '</td><td><button class="doctor-info-details-btn" data-email="' + d + '">Details</button>'
+               + '</td><td><button class="doctor-info-details-btn" data-info=' + JSON.stringify(doc) + '>Details</button>'
                + '</td></tr>';
     };
 
@@ -102,38 +108,42 @@ function MakeTable ()
     for (var i = 0; i < btns.length; i++)
     {
         btns[i].addEventListener('click', (event) => {
-            var email = event.srcElement.dataset.email;
+            console.log(event.srcElement.dataset.info);
+            var data = JSON.parse(event.srcElement.dataset.info);
             document.getElementById('doctor-info-list-view').classList.remove('is-shown');
-            SetupDetailedView(email);
+            SetupDetailedView(data);
             document.getElementById('doctor-info-doctor-view').classList.add('is-shown');
         });
     }
 }
 
-function ReturnToList ()
+function ReturnToListBtn () { ReturnToList('Button'); }
+function ReturnToList (source)
 {
     viewing = '';
-    GatherDoctors();
+    if (source != 'GatherDoctors')
+        GatherDoctors();
     document.getElementById('doctor-info-doctor-view').classList.remove('is-shown');
     document.getElementById('doctor-info-list-view').classList.add('is-shown');
 }
 
-function SetupDetailedView (email)
+function SetupDetailedView (doctor)
 {
     patients = [];
-    viewing = email;
+    viewing = doctor;
     var area = document.getElementById('doctor-info-patient-area');
     var table = document.createElement('table');
     table.id = 'doctor-info-patient-table';
+    area.innerHTML = '';
     area.appendChild(table);
 
-    var inner = '<tr><th>ID</th><th>Family Name</th><th>Given Name</th><th>Email</th><th></th><th></th><th></th></tr>';
+    var inner = '<tr><th>ID</th><th>Family Name</th><th>Given Name</th><th>Email</th><th></th><th></th></tr>';
 
     poster.post(postobj, '/fetch/patientMeta', function (resObj) {
         for (var i = 0; i < resObj.meta.length; i++)
         {
             var pat = resObj.meta[i];
-            if (pat.doctorEmail != email)
+            if (pat.doctorEmail != viewing.email)
                 continue;
             patients.push(pat);
             inner += '<tr><td>' + pat.id
@@ -164,19 +174,36 @@ function SetupDetailedView (email)
 
 function RemoveDoctorPrompt ()
 {
-    if (viewing == '')
+    if (viewing == null)
         return;
+    if (viewing.email == settings.get('email'))
+    {
+        console.log('Cannot Remove Yourself');
+        return;
+    }
     if (patients.length != 0)
     {
         console.log('Please Transfer All Patients Before Removing');
         return;
     }
-    console.log('Remove Doctor Prompt');
+    
+    var win = new BrowserWindow({
+        width: 600,
+        height: 400,
+        title: 'Remove Doctor'
+    });
+    win.loadURL(url.format({
+        pathname: path.join(__dirname, '/../view/popups/removeDoctor.html'),
+        protocol: 'file:',
+        slashes: true
+    }));
+    win.show();
+    win.on('close', () => { win = null; });
 }
 
 function TransferPrompt (event)
 {
-    if (viewing == '')
+    if (viewing == null)
         return;
 
     curPatient = JSON.parse(event.srcElement.dataset.pat);
@@ -197,7 +224,7 @@ function TransferPrompt (event)
 
 function RetirePatientPrompt (event)
 {
-    if (viewing == '')
+    if (viewing == null)
         return;
 
     curPatient = JSON.parse(event.srcElement.dataset.pat);
@@ -218,7 +245,7 @@ function RetirePatientPrompt (event)
 
 function InsertPatientPrompt (event)
 {
-    if (viewing == '')
+    if (viewing == null)
         return;
 
     var win = new BrowserWindow({
@@ -236,7 +263,19 @@ function InsertPatientPrompt (event)
 }
 
 ipcMain.on('ipc-doctor-info-curDoctor', (event, arg) => {
-    event.returnValue = viewing;
+    if (arg == 'get')
+        event.returnValue = viewing;
+    else if (arg == 'change')
+    {
+        ReturnToListBtn();
+        viewing = '';
+        event.returnValue = null;
+    }
+    else
+    {
+        viewing = '';
+        event.returnValue = null;
+    }
 });
 
 ipcMain.on('ipc-doctor-info-curPatient', (event, arg) => {

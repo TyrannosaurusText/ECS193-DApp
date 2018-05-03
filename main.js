@@ -5,7 +5,7 @@ const url = require('url');
 
 const { app, BrowserWindow, Menu } = electron;
 
-app.setName('Electron Test');
+app.setName('NIBVA');
 
 var win = null;
 

@@ -77,12 +77,6 @@ function signOut ()
 
     function revokeCB (resObj)
     {
-        if (resObj.hasOwnProperty('err'))
-        {
-            console.log('Error on revoke: ' + resObj.err);
-            return;
-        }
-
         settings.set('authCode', '');
         settings.set('email', '');
         settings.set('accType', '');
