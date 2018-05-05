@@ -7,9 +7,7 @@ const url = require('url');
 const path = require('path');
 
 var doctors = [];
-var postobj = { 
-    authCode: settings.get('authCode') 
-};
+var postobj = null;
 var patientAmt = 0;
 var doctorAmt = 0;
 var sectionBtn = null;
@@ -25,6 +23,8 @@ function Bind ()
 
     document.getElementById('doctor-info-back-btn').addEventListener('click', ReturnToListBtn);
     document.getElementById('doctor-info-remove-doc-btn').addEventListener('click', RemoveDoctorPrompt);
+
+    postobj = { authCode: settings.get('authCode') };
 }
 
 function GatherDoctors ()

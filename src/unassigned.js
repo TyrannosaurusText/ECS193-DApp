@@ -7,9 +7,7 @@ const url = require('url');
 const path = require('path');
 
 var sectionBtn = null;
-var postobj = { 
-    authCode: settings.get('authCode') 
-};
+var postobj = null;
 var patients = [];
 var curPatient = '';
 
@@ -17,6 +15,8 @@ function Bind ()
 {
     sectionBtn = document.getElementById('button-unassigned');
     sectionBtn.addEventListener('click', GatherPatients);
+
+    postobj = { authCode: settings.get('authCode') };
 }
 
 function GatherPatients ()
