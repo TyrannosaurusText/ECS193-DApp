@@ -4,7 +4,6 @@ const chartjs = require('chart.js');
 const moment = require('moment');
 const globals = require('../assets/globals.js');
 const poster = require('./utils/poster');
-const crypto = require('crypto');
 
 var patientList = null;
 var sectionBtn = null;
@@ -197,6 +196,4 @@ function ShowTable (output)
     table.innerHTML = inner;
 }
 
-module.exports.GatherPatientList = GatherPatientList;
-module.exports.GraphPatientData = GraphPatientData;
 module.exports.Bind = Bind;

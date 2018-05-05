@@ -33,8 +33,8 @@ function signIn ()
 
         oauthClient.getAccessToken(options)
             .then(function (tokens) {
-                console.log('Tokens:');
-                console.log(tokens);
+                //console.log('Tokens:');
+                //console.log(tokens);
 
                 var token = {accessToken: tokens.access_token};
                 poster.post(token, '/security/getAuth', authCB);

@@ -108,7 +108,7 @@ function MakeTable ()
     for (var i = 0; i < btns.length; i++)
     {
         btns[i].addEventListener('click', (event) => {
-            console.log(event.srcElement.dataset.info);
+            //console.log(event.srcElement.dataset.info);
             var data = JSON.parse(event.srcElement.dataset.info);
             document.getElementById('doctor-info-list-view').classList.remove('is-shown');
             SetupDetailedView(data);
@@ -268,12 +268,12 @@ ipcMain.on('ipc-doctor-info-curDoctor', (event, arg) => {
     else if (arg == 'change')
     {
         ReturnToListBtn();
-        viewing = '';
+        viewing = null;
         event.returnValue = null;
     }
     else
     {
-        viewing = '';
+        viewing = null;
         event.returnValue = null;
     }
 });

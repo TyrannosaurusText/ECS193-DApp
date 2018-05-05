@@ -18,7 +18,7 @@ btn.addEventListener('click', (event) => {
     }
 
     var postObj = {
-        doctorEmail: ipcRenderer.sendSync('ipc-doctor-info-curDoctor', 'get'),
+        doctorEmail: ipcRenderer.sendSync('ipc-doctor-info-curDoctor', 'get').email,
         recipientEmail: email,
         recipientFamilyName: fName,
         recipientGivenName: gName,

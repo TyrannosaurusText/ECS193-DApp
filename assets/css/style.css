@@ -101,6 +101,23 @@ html {
     transition: visibility 0s 0s linear , opacity .36s ease-out, transform .36s ease-out;
 }
 
+/*Landing*/
+
+.landing-view {
+    position: absolute;
+    top: 50;
+    width: calc(100% - 40px);
+
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+}
+.landing-view.is-shown {
+    pointer-events: auto;
+    visibility: visible;
+    opacity: 1;
+}
+
 /*Doctor Info*/
 
 .doctor-info-view {
