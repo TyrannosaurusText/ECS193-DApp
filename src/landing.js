@@ -117,6 +117,11 @@ function SetupDetailedView (patient)
             ChartCSV(output, patient);
             ShowTable(output, patient);
         });
+        poster.post(postobj, '/fetch/events', function(resObj){
+            var csv = csvParse(resObj.csv, {comment: '#'}, function(err,output){
+                constructEventTable([0,0,0]); //TODO: construct seperate csv for this
+            });
+        })
     });
 }
 
@@ -249,8 +254,50 @@ function ShowTable (output, patient)
             inner += '<td>' + parseFloat(output[i][j]).toFixed(2).toString() + '</td>'
         inner += '</tr>';
     }
-
+}
+function constructEventTable(csv)
+{
     table = document.getElementById('graph-patient-table');
+    table.innerHTML = inner;
+
+    var area = document.getElementById('graph-patient-event');
+    area.innerHTML = '';
+    var table = document.createElement('table');
+    table.id = 'graph-patient-event-table';
+    area.appendChild(table);
+
+    var inner = '';
+    inner += '<th>' + "Event Type" + '</th>';
+    inner += '<th>' + "Time Stamp" + '</th>';
+    inner += '<th>' + "Amount" + '</th>';
+    
+    inner += '</tr>';
+
+    for (var i = 0; i < csv.length; i++)
+    {
+        inner += '<tr><td>';
+
+        inner += '<td>' + EventType + '</td>';
+        var dateStr = csv[i][0].toString();
+        dateStr = dateStr.substring(0, dateStr.length - 6);
+        var mmt = moment(dateStr, 'ddd MMM DD YYYY hh:mm:ss Z');
+        inner += '<td>' + dateStr + '</td>';
+        inner += mmt.format('lll');
+
+        inner += '</td>'
+        
+        var EventType = csv[i][1];
+        var VoidAmount = parseFloat(csv[i][2]);
+
+        if(EventType == 'leak')
+            inner += '<td>'  + '</td>'
+        else if (EventType == 'void')
+            inner += '<td>' + Amount + '</td>';
+        
+        inner += '</tr>';
+    }
+
+    table = document.getElementById('graph-patient-event-table');
     table.innerHTML = inner;
 }
 

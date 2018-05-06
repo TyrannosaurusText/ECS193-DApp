@@ -73,6 +73,7 @@ function signOut ()
         authCode: settings.get('authCode'),
         accType: settings.get('accType')
     };
+    console.log(postObj.authCode);
     poster.post(postObj, '/security/revokeAuth', revokeCB);
 
     function revokeCB (resObj)
@@ -82,7 +83,7 @@ function signOut ()
         settings.set('accType', '');
         settings.set('name', '');
         settings.set('signedIn', false);
-    
+     
         indexImporter.loadImports();
     }
 }
