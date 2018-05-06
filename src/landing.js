@@ -119,7 +119,7 @@ function SetupDetailedView (patient)
         });
         poster.post(postobj, '/fetch/events', function(resObj){
             var csv = csvParse(resObj.csv, {comment: '#'}, function(err,output){
-                constructEventTable([0,0,0]); //TODO: construct seperate csv for this
+                constructEventTable(output); //TODO: construct seperate csv for this
             });
         })
     });
@@ -254,12 +254,13 @@ function ShowTable (output, patient)
             inner += '<td>' + parseFloat(output[i][j]).toFixed(2).toString() + '</td>'
         inner += '</tr>';
     }
-}
-function constructEventTable(csv)
-{
+
     table = document.getElementById('graph-patient-table');
     table.innerHTML = inner;
+}
 
+function constructEventTable(csv)
+{
     var area = document.getElementById('graph-patient-event');
     area.innerHTML = '';
     var table = document.createElement('table');
@@ -275,24 +276,25 @@ function constructEventTable(csv)
 
     for (var i = 0; i < csv.length; i++)
     {
-        inner += '<tr><td>';
+        inner += '<tr>';
 
-        inner += '<td>' + EventType + '</td>';
         var dateStr = csv[i][0].toString();
         dateStr = dateStr.substring(0, dateStr.length - 6);
-        var mmt = moment(dateStr, 'ddd MMM DD YYYY hh:mm:ss Z');
-        inner += '<td>' + dateStr + '</td>';
-        inner += mmt.format('lll');
-
-        inner += '</td>'
         
         var EventType = csv[i][1];
         var VoidAmount = parseFloat(csv[i][2]);
 
+        inner += '<td>' + EventType + '</td>';
+        
+        inner+= '<td>';
+        var mmt = moment(dateStr, 'ddd MMM DD YYYY hh:mm:ss Z');
+        inner += mmt.format('lll');
+        inner += '</td>'
+        
         if(EventType == 'leak')
             inner += '<td>'  + '</td>'
         else if (EventType == 'void')
-            inner += '<td>' + Amount + '</td>';
+            inner += '<td>' + VoidAmount + '</td>';
         
         inner += '</tr>';
     }
