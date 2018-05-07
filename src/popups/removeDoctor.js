@@ -14,7 +14,8 @@ ybtn.addEventListener('click', (event) => {
 
     var postobj = {
         authCode: settings.get('authCode'),
-        email: doctor.email
+        email: doctor.email,
+        id: doctor.id
     };
 
     poster.post(postobj, '/remove/doctor', cb);

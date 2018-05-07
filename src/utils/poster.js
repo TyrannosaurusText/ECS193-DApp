@@ -31,6 +31,7 @@ function post (postobj, postpath, callback)
             concat += body;
         });
         res.on('end', () => {
+            //console.log(concat);
             var resObj = JSON.parse(concat);
             if (resObj.hasOwnProperty('err'))
             {

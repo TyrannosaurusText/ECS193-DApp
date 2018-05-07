@@ -39,17 +39,23 @@ function GatherDoctors ()
         doctors = [];
 
         doctors[''] = {
+            id: 0,
             familyName: '',
             givenName: '',
-            patientCount: 0
+            patientCount: 0,
+            lastLogin: '',
+            lastLoginTime: ''
         };
 
         Array.prototype.forEach.call(resObj, function (d) {
             doctorAmt++;
             doctors[d.email] = {
+                id: d.id,
                 familyName: d.familyName,
                 givenName: d.givenName,
-                patientCount: 0
+                patientCount: 0,
+                lastLogin: d.lastLogin.substring(0, 10),
+                lastLoginTime: d.lastLogin.substring(11, 19)
             };
         });
         
@@ -89,9 +95,12 @@ function MakeTable ()
         if (d == '')
             continue;
         var doc = {
+            id: doctors[d].id,
             familyName: doctors[d].familyName,
             givenName: doctors[d].givenName,
-            email: d
+            email: d,
+            lastLogin: doctors[d].lastLogin,
+            lastLoginTime: doctors[d].lastLoginTime
         };
         inner += '<tr><td>' + doctors[d].familyName 
                + '</td><td>' + doctors[d].givenName
@@ -129,6 +138,9 @@ function ReturnToList (source)
 
 function SetupDetailedView (doctor)
 {
+    var lastLoginDiv = document.getElementById('doctor-info-last-login');
+    lastLoginDiv.innerHTML = 'Last Login: ' + doctor.lastLogin + ' ' + doctor.lastLoginTime + ' UTC';
+
     patients = [];
     viewing = doctor;
     var area = document.getElementById('doctor-info-patient-area');

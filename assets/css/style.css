@@ -118,6 +118,11 @@ html {
     opacity: 1;
 }
 
+.patient-notes-area {
+    overflow-x: scroll;
+    white-space: nowrap;
+}
+
 /*Doctor Info*/
 
 .doctor-info-view {

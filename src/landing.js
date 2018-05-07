@@ -13,7 +13,7 @@ const moment = require('moment');
 const globals = require('../assets/globals.js');
 
 var sectionBtn = null;
-var viewing = -1;
+var viewing = null;
 
 ipc.on('close', (event, message) => {
     if (settings.get('signedIn'))
@@ -43,7 +43,7 @@ function bindButtons ()
 
 function CreateInterface ()
 {
-    if (viewing >= 0)
+    if (viewing != null)
         ReturnToList('CreateInterface');
 
     if (settings.get('accType') == 'doctor' || settings.get('accType') == 'adminDoctor')
@@ -67,6 +67,10 @@ function CreateInterface ()
             for (var i = 0; i < resObj.meta.length; i++)
             {
                 var pat = resObj.meta[i];
+                //console.log(pat);
+                var date = pat.lastLogin;
+                pat.lastLogin = date.substring(0, 10);
+                pat.lastLoginTime = date.substring(11, 19);
                 if (pat.doctorEmail != settings.get('email'))
                     continue;
                 inner += '<tr><td>' + pat.id
@@ -84,7 +88,7 @@ function CreateInterface ()
             for (var i = 0; i < btns.length; i++)
             {
                 btns[i].addEventListener('click', (event) => {
-                    //console.log(event.srcElement.dataset.info);
+                    //console.log(event.srcElement.dataset.pat);
                     var pat = JSON.parse(event.srcElement.dataset.pat);
                     document.getElementById('landing-list-view').classList.remove('is-shown');
                     SetupDetailedView(pat);
@@ -98,7 +102,7 @@ function CreateInterface ()
 function ReturnToListBtn () { ReturnToList('Button'); }
 function ReturnToList (source)
 {
-    viewing = -1;
+    viewing = null;
     if (source != 'CreateInterface')
         CreateInterface();
     document.getElementById('landing-patient-view').classList.remove('is-shown');
@@ -107,21 +111,24 @@ function ReturnToList (source)
 
 function SetupDetailedView (patient)
 {
+    viewing = patient;
+
     var postobj = {
         authCode: settings.get('authCode'),
         id: patient.id
     };
 
+    poster.post(postobj, '/fetch/events', function(resObj) {
+        var csv = csvParse(resObj.csv, {comment: '#'}, function(err,output){
+            constructEventTable(output, patient);
+        });
+    });
+    CompileNotes(patient);
     poster.post(postobj, '/fetch/readings', function (resObj) {
         var csv = csvParse(resObj.csv, { comment: '#' }, function (err, output) {
             ChartCSV(output, patient);
             ShowTable(output, patient);
         });
-        poster.post(postobj, '/fetch/events', function(resObj){
-            var csv = csvParse(resObj.csv, {comment: '#'}, function(err,output){
-                constructEventTable(output); //TODO: construct seperate csv for this
-            });
-        })
     });
 }
 
@@ -214,7 +221,7 @@ function ChartCSV (output, patient)
             var ch = j - 1;
             var dateStr = output[i][0].toString();
             dateStr = dateStr.substring(0, dateStr.length - 6); //remove postfix ' (UTC)'
-            console.log(dateStr);
+            //console.log(dateStr);
             config.data.datasets[ch].data.push({
                 x: moment(dateStr, 'ddd MMM DD YYYY hh:mm:ss Z'),
                 y: parseFloat(output[i][j])
@@ -259,17 +266,21 @@ function ShowTable (output, patient)
     table.innerHTML = inner;
 }
 
-function constructEventTable(csv)
+function constructEventTable(csv, patient)
 {
+    var voids = 0;
+    var avgVoidAmt = 0;
+    var avgVoidTime = 0;
+    var tempTime = null;
     var area = document.getElementById('graph-patient-event');
     area.innerHTML = '';
     var table = document.createElement('table');
     table.id = 'graph-patient-event-table';
     area.appendChild(table);
 
-    var inner = '';
+    var inner = '<tr>';
     inner += '<th>' + "Event Type" + '</th>';
-    inner += '<th>' + "Time Stamp" + '</th>';
+    inner += '<th>' + "Timestamp" + '</th>';
     inner += '<th>' + "Amount" + '</th>';
     
     inner += '</tr>';
@@ -294,13 +305,82 @@ function constructEventTable(csv)
         if(EventType == 'leak')
             inner += '<td>'  + '</td>'
         else if (EventType == 'void')
+        {
             inner += '<td>' + VoidAmount + '</td>';
+            voids++;
+            avgVoidAmt += VoidAmount;
+
+            if (tempTime == null)
+                tempTime = mmt;
+            else
+            {
+                var dur = moment.duration(mmt.diff(tempTime));
+                tempTime = mmt;
+                //console.log(dur);
+                avgVoidTime += dur.asMilliseconds();
+            }
+        }
         
         inner += '</tr>';
     }
 
     table = document.getElementById('graph-patient-event-table');
     table.innerHTML = inner;
+
+    avgVoidAmt /= voids;
+    tempTime = moment.duration(avgVoidTime);
+
+    var avgs = document.getElementById('patient-event-avg');
+    avgs.innerHTML = 'Last Login: ' + patient.lastLogin + ' ' + patient.lastLoginTime + ' UTC';
+    avgs.innerHTML += '<br>Average Time Between Voids: ' + tempTime.humanize(false);
+    avgs.innerHTML += '<br>Average Void Amount: ' + avgVoidAmt + 'ml';
+}
+
+function CompileNotes (patient)
+{
+    var noteobj = {
+        authCode: settings.get('authCode'),
+        id: settings.get('id')
+    };
+    poster.post(noteobj, '/fetch/notes', function (resObj) {
+        //console.log(resObj);
+        //console.log(patient);
+
+        var area = document.getElementById('patient-notes-area');
+        area.innerHTML = '<h3>Notes</h3>';
+        var table = document.createElement('table');
+        table.id = 'patient-notes-table';
+        area.appendChild(table);
+
+        var inner = '<tr><th>Date</th><th>Note</th></tr>';
+        Array.prototype.forEach.call(resObj, function (n) {
+            if (n.patientID == patient.id)
+                inner += '<tr><td>' + n.timestamp.substring(0,10) + '</td><td>' + n.note + '</td></tr>';
+        });
+
+        inner += '<tr><td><button id="patient-note-insert-btn">Insert Note</button></td>';
+        inner += '<td><input id="patient-note-new" type="text"/></td></tr>'
+
+        table = document.getElementById('patient-notes-table');
+        table.innerHTML = inner;
+
+        document.getElementById('patient-note-insert-btn').addEventListener('click', InsertNote);
+    });
+}
+
+function InsertNote ()
+{
+    var postobj = {
+        authCode: settings.get('authCode'),
+        id: settings.get('id'),
+        patientID: viewing.id,
+        note: document.getElementById('patient-note-new').value
+    };
+    poster.post(postobj, '/insert/note', cb);
+
+    function cb () {
+        CompileNotes(viewing);
+    }
 }
 
 module.exports.bindButtons = bindButtons;

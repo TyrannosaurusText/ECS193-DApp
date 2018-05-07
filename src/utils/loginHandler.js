@@ -53,6 +53,7 @@ function signIn ()
         console.log(resObj);
         if (!resObj.hasOwnProperty('err'))
         {
+            settings.set('id', resObj.id);
             settings.set('email', resObj.email);
             settings.set('accType', resObj.accType);
             settings.set('name', resObj.name);
@@ -78,6 +79,7 @@ function signOut ()
 
     function revokeCB (resObj)
     {
+        settings.set('id', 0);
         settings.set('authCode', '');
         settings.set('email', '');
         settings.set('accType', '');
