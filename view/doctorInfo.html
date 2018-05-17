@@ -14,12 +14,14 @@
         <div class="doctor-info-view" id="doctor-info-doctor-view">
             <button id="doctor-info-back-btn">Go Back</button>
             <button id="doctor-info-remove-doc-btn">Remove Doctor</button>
+            <div id="doctor-info-add-admin-btn-area"></div>
             <div id="doctor-info-last-login"></div>
             <h3>Patients</h3>
             <div id="doctor-info-patient-area" class="doctor-info-table-area">
                 
             </div>
         </div>
+        <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
         <script>
             var di = require('./src/doctorInfo');
             di.Bind();

@@ -22,6 +22,8 @@ ipc.on('close', (event, message) => {
 
 function bindButtons ()
 {
+    window.$ = window.jQuery = require('jquery');
+
     sectionBtn = document.getElementById('button-landing');
     sectionBtn.addEventListener('click', CreateInterface);
 
@@ -51,6 +53,10 @@ function CreateInterface ()
         var postobj = { 
             authCode: settings.get('authCode') 
         };
+        var tagobj = {
+            authCode: settings.get('authCode'),
+            id: settings.get('id')
+        };
 
         var area = document.getElementById('landing-patient-area');
         var tableHeader = document.createElement('h3');
@@ -61,40 +67,55 @@ function CreateInterface ()
         area.appendChild(tableHeader);
         area.appendChild(table);
     
-        var inner = '<tr><th>ID</th><th>Family Name</th><th>Given Name</th><th>Email</th><th></th></tr>';
+        var inner = '<thead><tr><th>ID</th><th>Tag</th><th>Family Name</th><th>Given Name</th><th>Email</th><th></th></tr></thead><tbody>';
     
         poster.post(postobj, '/fetch/patientMeta', function (resObj) {
-            for (var i = 0; i < resObj.meta.length; i++)
+            poster.post(tagobj, '/fetch/tags', function (resTags)
             {
-                var pat = resObj.meta[i];
-                //console.log(pat);
-                var date = pat.lastLogin;
-                pat.lastLogin = date.substring(0, 10);
-                pat.lastLoginTime = date.substring(11, 19);
-                if (pat.doctorEmail != settings.get('email'))
-                    continue;
-                inner += '<tr><td>' + pat.id
-                       + '</td><td>' + pat.familyName
-                       + '</td><td>' + pat.givenName
-                       + '</td><td>' + pat.email
-                       + '</td><td><button class="graph-patient-details-btn" data-pat=' + JSON.stringify(pat) + '>Details</button>'
-                       + '</td></tr>';
-            }
-    
-            table = document.getElementById('landing-patient-table');
-            table.innerHTML = inner;
-
-            var btns = document.getElementsByClassName('graph-patient-details-btn');
-            for (var i = 0; i < btns.length; i++)
-            {
-                btns[i].addEventListener('click', (event) => {
-                    //console.log(event.srcElement.dataset.pat);
-                    var pat = JSON.parse(event.srcElement.dataset.pat);
-                    document.getElementById('landing-list-view').classList.remove('is-shown');
-                    SetupDetailedView(pat);
-                    document.getElementById('landing-patient-view').classList.add('is-shown');
+                var tags = [];
+                Array.prototype.forEach.call(resTags, function (t) {
+                    tags[t.patientID] = t.note;
                 });
-            }
+
+                for (var i = 0; i < resObj.meta.length; i++)
+                {
+                    var pat = resObj.meta[i];
+                    var tag = '';
+                    if (tags[pat.id])
+                        tag = tags[pat.id];
+                    //console.log(pat);
+                    var date = pat.lastLogin;
+                    pat.lastLogin = date.substring(0, 10);
+                    pat.lastLoginTime = date.substring(11, 19);
+                    if (pat.doctorEmail != settings.get('email'))
+                        continue;
+                    inner += '<tr><td>' + pat.id
+                        + '</td><td>' + tag
+                        + '</td><td>' + pat.familyName
+                        + '</td><td>' + pat.givenName
+                        + '</td><td>' + pat.email
+                        + '</td><td><button class="graph-patient-details-btn" data-pat=' + JSON.stringify(pat) + '>Details</button>'
+                        + '</td></tr>';
+                }
+                inner += '</thead>';
+        
+                table = document.getElementById('landing-patient-table');
+                table.innerHTML = inner;
+
+                var btns = document.getElementsByClassName('graph-patient-details-btn');
+                for (var i = 0; i < btns.length; i++)
+                {
+                    btns[i].addEventListener('click', (event) => {
+                        //console.log(event.srcElement.dataset.pat);
+                        var pat = JSON.parse(event.srcElement.dataset.pat);
+                        document.getElementById('landing-list-view').classList.remove('is-shown');
+                        SetupDetailedView(pat);
+                        document.getElementById('landing-patient-view').classList.add('is-shown');
+                    });
+                }
+
+                $('#landing-patient-table').dataTable();
+            });
         });
     }
 }
@@ -117,7 +138,18 @@ function SetupDetailedView (patient)
         authCode: settings.get('authCode'),
         id: patient.id
     };
+    var tagobj = {
+        authCode: settings.get('authCode'),
+        id: settings.get('id')
+    };
 
+    poster.post(tagobj, '/fetch/tags', function(resObj) {
+        var tags = [];
+        Array.prototype.forEach.call(resObj, function (t) {
+            tags[t.patientID] = t.note;
+        });
+        TaggingArea(tags, patient.id);
+    });
     poster.post(postobj, '/fetch/events', function(resObj) {
         var csv = csvParse(resObj.csv, {comment: '#'}, function(err,output){
             constructEventTable(output, patient);
@@ -130,6 +162,47 @@ function SetupDetailedView (patient)
             ShowTable(output, patient);
         });
     });
+}
+
+function TaggingArea (tags, patientID)
+{
+    var area = document.getElementById('patient-tagging-area');
+    var tag = '';
+    if (tags[patientID])
+        tag = tags[patientID];
+    area.innerHTML = '<h3>Tag: ' + tag + '</h3><br>';
+    area.innerHTML += '<button id="patient-tag-change-btn">Change Tag</button>';
+    area.innerHTML += '<input id="patient-tag-new" type="text"/>';
+    area.innerHTML += '<button id="patient-tag-remove-btn">Remove Tag</button>';
+
+    document.getElementById('patient-tag-change-btn').addEventListener('click', InsertTag);
+    document.getElementById('patient-tag-remove-btn').addEventListener('click', RemoveTag);
+
+    function InsertTag ()
+    {
+        var postobj = {
+            authCode: settings.get('authCode'),
+            id: settings.get('id'),
+            patientID: patientID,
+            tag: document.getElementById('patient-tag-new').value
+        };
+        poster.post(postobj, '/insert/tag', function (resObj) {
+            SetupDetailedView(viewing);
+        });
+    }
+
+    function RemoveTag ()
+    {
+        var postobj = {
+            authCode: settings.get('authCode'),
+            id: settings.get('id'),
+            patientID: patientID,
+            tag: ''
+        };
+        poster.post(postobj, '/insert/tag', function (resObj) {
+            SetupDetailedView(viewing);
+        });
+    }
 }
 
 function ChartCSV (output, patient)
@@ -242,10 +315,10 @@ function ShowTable (output, patient)
     area.appendChild(table);
 
     var inner = '';
-    inner += '<tr><th>Timestamp</th>';
+    inner += '<thead><tr><th>Timestamp</th>';
     for (var i = 0; i < globals.channelAmt; i++)
         inner += '<th>CH' + i.toString() + '</th>';
-    inner += '</tr>';
+    inner += '</tr></thead><tbody>';
 
     for (var i = 0; i < output.length; i++)
     {
@@ -261,9 +334,12 @@ function ShowTable (output, patient)
             inner += '<td>' + parseFloat(output[i][j]).toFixed(2).toString() + '</td>'
         inner += '</tr>';
     }
+    inner += '</tbody>';
 
     table = document.getElementById('graph-patient-table');
     table.innerHTML = inner;
+
+    $('#graph-patient-table').dataTable();
 }
 
 function constructEventTable(csv, patient)
@@ -278,12 +354,12 @@ function constructEventTable(csv, patient)
     table.id = 'graph-patient-event-table';
     area.appendChild(table);
 
-    var inner = '<tr>';
+    var inner = '<thead><tr>';
     inner += '<th>' + "Event Type" + '</th>';
     inner += '<th>' + "Timestamp" + '</th>';
     inner += '<th>' + "Amount" + '</th>';
     
-    inner += '</tr>';
+    inner += '</tr></thead><tbody>';
 
     for (var i = 0; i < csv.length; i++)
     {
@@ -323,15 +399,19 @@ function constructEventTable(csv, patient)
         
         inner += '</tr>';
     }
+    inner += '</tbody>';
 
     table = document.getElementById('graph-patient-event-table');
     table.innerHTML = inner;
+
+    $('#graph-patient-event-table').dataTable();
 
     avgVoidAmt /= voids;
     tempTime = moment.duration(avgVoidTime);
 
     var avgs = document.getElementById('patient-event-avg');
-    avgs.innerHTML = 'Last Login: ' + patient.lastLogin + ' ' + patient.lastLoginTime + ' UTC';
+    avgs.innerHTML = '<h3>Events</h3><br>';
+    avgs.innerHTML += 'Last Login: ' + patient.lastLogin + ' ' + patient.lastLoginTime + ' UTC';
     avgs.innerHTML += '<br>Average Time Between Voids: ' + tempTime.humanize(false);
     avgs.innerHTML += '<br>Average Void Amount: ' + avgVoidAmt + 'ml';
 }
@@ -352,17 +432,21 @@ function CompileNotes (patient)
         table.id = 'patient-notes-table';
         area.appendChild(table);
 
-        var inner = '<tr><th>Date</th><th>Note</th></tr>';
+        var inner = '<thead><tr><th>Date</th><th>Note</th></tr></thead><tbody>';
         Array.prototype.forEach.call(resObj, function (n) {
             if (n.patientID == patient.id)
                 inner += '<tr><td>' + n.timestamp.substring(0,10) + '</td><td>' + n.note + '</td></tr>';
         });
-
-        inner += '<tr><td><button id="patient-note-insert-btn">Insert Note</button></td>';
-        inner += '<td><input id="patient-note-new" type="text"/></td></tr>'
+        inner += '</tbody>';
 
         table = document.getElementById('patient-notes-table');
         table.innerHTML = inner;
+
+        $('#patient-notes-table').dataTable();
+
+        inner = '<button id="patient-note-insert-btn">Insert Note</button>';
+        inner += '<input id="patient-note-new" type="text"/>';
+        area.innerHTML += inner;
 
         document.getElementById('patient-note-insert-btn').addEventListener('click', InsertNote);
     });

@@ -17,6 +17,8 @@ var curPatient = null;
 
 function Bind ()
 {
+    window.$ = window.jQuery = require('jquery');
+
     //console.log('BindDoctorInfo');
     sectionBtn = document.getElementById('button-doctor-info');
     sectionBtn.addEventListener('click', GatherDoctors);
@@ -44,7 +46,8 @@ function GatherDoctors ()
             givenName: '',
             patientCount: 0,
             lastLogin: '',
-            lastLoginTime: ''
+            lastLoginTime: '',
+            accType: ''
         };
 
         Array.prototype.forEach.call(resObj, function (d) {
@@ -55,7 +58,8 @@ function GatherDoctors ()
                 givenName: d.givenName,
                 patientCount: 0,
                 lastLogin: d.lastLogin.substring(0, 10),
-                lastLoginTime: d.lastLogin.substring(11, 19)
+                lastLoginTime: d.lastLogin.substring(11, 19),
+                accType: d.accType
             };
         });
         
@@ -89,7 +93,7 @@ function MakeTable ()
     area.innerHTML = '';
     area.appendChild(table);
 
-    var inner = '<tr><th>Family Name</th><th>Given Name</th><th>Email</th><th>Patient Amount</th><th></th></tr>';
+    var inner = '<thead><tr><th>Family Name</th><th>Given Name</th><th>Email</th><th>Patient Amount</th><th></th></tr></thead><tbody>';
     for (var d in doctors) 
     {
         if (d == '')
@@ -100,7 +104,8 @@ function MakeTable ()
             givenName: doctors[d].givenName,
             email: d,
             lastLogin: doctors[d].lastLogin,
-            lastLoginTime: doctors[d].lastLoginTime
+            lastLoginTime: doctors[d].lastLoginTime,
+            accType: doctors[d].accType
         };
         inner += '<tr><td>' + doctors[d].familyName 
                + '</td><td>' + doctors[d].givenName
@@ -109,6 +114,7 @@ function MakeTable ()
                + '</td><td><button class="doctor-info-details-btn" data-info=' + JSON.stringify(doc) + '>Details</button>'
                + '</td></tr>';
     };
+    inner += '</tbody>';
 
     table = document.getElementById('doctor-info-table');
     table.innerHTML = inner;
@@ -124,20 +130,52 @@ function MakeTable ()
             document.getElementById('doctor-info-doctor-view').classList.add('is-shown');
         });
     }
+
+    $('#doctor-info-table').dataTable();
 }
 
 function ReturnToListBtn () { ReturnToList('Button'); }
 function ReturnToList (source)
 {
-    viewing = '';
+    viewing = null;
     if (source != 'GatherDoctors')
         GatherDoctors();
     document.getElementById('doctor-info-doctor-view').classList.remove('is-shown');
     document.getElementById('doctor-info-list-view').classList.add('is-shown');
 }
 
+function MakeAdmin ()
+{
+    if (viewing == null)
+        return;
+    var makeAdminObj = {
+        authCode: settings.get('authCode'),
+        email: viewing.email,
+        accType: 'adminDoctor'
+    };
+    poster.post(makeAdminObj, '/modify/faculty', modifyCB);
+
+    function modifyCB (resObj)
+    {
+        if (resObj.hasOwnProperty('body'))
+        {
+            doctors[viewing.email].accType = 'adminDoctor';
+            viewing.accType = 'adminDoctor';
+            SetupDetailedView(viewing);
+        }
+    }
+}
+
 function SetupDetailedView (doctor)
 {
+    var makeAdminDiv = document.getElementById('doctor-info-add-admin-btn-area');
+    makeAdminDiv.innerHTML = '';
+    if (doctor.accType == 'doctor')
+    {
+        makeAdminDiv.innerHTML = '<button id="doctor-info-add-admin-btn">Make Admin</button>'
+        document.getElementById('doctor-info-add-admin-btn').addEventListener('click', MakeAdmin);
+    }
+
     var lastLoginDiv = document.getElementById('doctor-info-last-login');
     lastLoginDiv.innerHTML = 'Last Login: ' + doctor.lastLogin + ' ' + doctor.lastLoginTime + ' UTC';
 
@@ -149,7 +187,7 @@ function SetupDetailedView (doctor)
     area.innerHTML = '';
     area.appendChild(table);
 
-    var inner = '<tr><th>ID</th><th>Family Name</th><th>Given Name</th><th>Email</th><th></th><th></th></tr>';
+    var inner = '<thead><tr><th>ID</th><th>Family Name</th><th>Given Name</th><th>Email</th><th></th><th></th></tr></thead><tbody>';
 
     poster.post(postobj, '/fetch/patientMeta', function (resObj) {
         for (var i = 0; i < resObj.meta.length; i++)
@@ -167,7 +205,7 @@ function SetupDetailedView (doctor)
                    + '</td></tr>';
         }
 
-        inner += '<tr><td colspan="6"><button id="doctor-info-patient-insert-btn">Insert</button></td></tr>';
+        inner += '</tbody>';
 
         table = document.getElementById('doctor-info-patient-table');
         table.innerHTML = inner;
@@ -180,7 +218,14 @@ function SetupDetailedView (doctor)
         for (var i = 0; i < btns.length; i++)
             btns[i].addEventListener('click', RetirePatientPrompt);
         
+        var insertBtn = document.createElement('button');
+        insertBtn.id = 'doctor-info-patient-insert-btn';
+        insertBtn.innerHTML = 'INSERT';
+        area.appendChild(insertBtn);
+
         document.getElementById('doctor-info-patient-insert-btn').addEventListener('click', InsertPatientPrompt);
+
+        $('#doctor-info-patient-table').dataTable();
     });
 }
 
