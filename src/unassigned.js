@@ -13,6 +13,8 @@ var curPatient = '';
 
 function Bind ()
 {
+    window.$ = window.jQuery = require('jquery');
+
     sectionBtn = document.getElementById('button-unassigned');
     sectionBtn.addEventListener('click', GatherPatients);
 
@@ -29,7 +31,7 @@ function GatherPatients ()
     area.innerHTML = '';
     area.appendChild(table);
 
-    var inner = '<tr><th>ID</th><th>Family Name</th><th>Given Name</th><th>Email</th><th></th><th></th></tr>';
+    var inner = '<thead><tr><th>ID</th><th>Family Name</th><th>Given Name</th><th>Email</th><th></th><th></th></tr></thead><tbody>';
 
     poster.post(postobj, '/fetch/patientMeta', function (resObj) {
         for (var i = 0; i < resObj.meta.length; i++)
@@ -47,6 +49,7 @@ function GatherPatients ()
                        + '</td></tr>';
             }
         }
+        inner += '</tbody>';
 
         table = document.getElementById('unassigned-patient-table');
         table.innerHTML = inner;
@@ -58,6 +61,8 @@ function GatherPatients ()
         btns = document.getElementsByClassName('unassigned-patient-remove-btn');
         for (var i = 0; i < btns.length; i++)
             btns[i].addEventListener('click', RemovePrompt);
+
+        $('#unassigned-patient-table').dataTable();
     });
 }
 

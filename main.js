@@ -18,7 +18,7 @@ app.on('ready', () => {
     settings.set('name', '');
 
     win = new BrowserWindow({
-        width: 1080,
+        width: 1280,
         height: 720,
         minWidth: 720,
         minHeight: 600, 

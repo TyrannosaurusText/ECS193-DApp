@@ -113,7 +113,7 @@ html {
     opacity: 0;
 }
 .landing-view.is-shown {
-    pointer-events: auto;
+    pointer-events: inherit;
     visibility: visible;
     opacity: 1;
 }
@@ -134,7 +134,7 @@ html {
     opacity: 0;
 }
 .doctor-info-view.is-shown {
-    pointer-events: auto;
+    pointer-events: inherit;
     visibility: visible;
     opacity: 1;
 }

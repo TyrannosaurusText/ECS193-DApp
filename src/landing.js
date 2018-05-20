@@ -339,6 +339,47 @@ function ShowTable (output, patient)
     table = document.getElementById('graph-patient-table');
     table.innerHTML = inner;
 
+    var format = 'MMM D, YYYY h:mm A';
+    var types = $.fn.dataTable.ext.type;
+ 
+    // Add type detection
+    types.detect.unshift( function ( d ) {
+        if ( d ) {
+            // Strip HTML tags and newline characters if possible
+            if ( d.replace ) {
+                d = d.replace(/(<.*?>)|(\r?\n|\r)/g, '');
+            }
+ 
+            // Strip out surrounding white space
+            d = $.trim( d );
+        }
+ 
+        // Null and empty values are acceptable
+        if ( d === '' || d === null ) {
+            return 'moment-'+format;
+        }
+ 
+        return moment( d, format, true ).isValid() ?
+            'moment-'+format :
+            null;
+    } );
+ 
+    // Add sorting method - use an integer for the sorting
+    types.order[ 'moment-'+format+'-pre' ] = function ( d ) {
+        if ( d ) {
+            // Strip HTML tags and newline characters if possible
+            if ( d.replace ) {
+                d = d.replace(/(<.*?>)|(\r?\n|\r)/g, '');
+            }
+ 
+            // Strip out surrounding white space
+            d = $.trim( d );
+        }
+         
+        return !moment(d, format, true).isValid() ?
+            Infinity :
+            parseInt( moment( d, format, true ).format( 'x' ), 10 );
+    };
     $('#graph-patient-table').dataTable();
 }
 
@@ -404,6 +445,47 @@ function constructEventTable(csv, patient)
     table = document.getElementById('graph-patient-event-table');
     table.innerHTML = inner;
 
+    var format = 'MMM D, YYYY h:mm A';
+    var types = $.fn.dataTable.ext.type;
+ 
+    // Add type detection
+    types.detect.unshift( function ( d ) {
+        if ( d ) {
+            // Strip HTML tags and newline characters if possible
+            if ( d.replace ) {
+                d = d.replace(/(<.*?>)|(\r?\n|\r)/g, '');
+            }
+ 
+            // Strip out surrounding white space
+            d = $.trim( d );
+        }
+ 
+        // Null and empty values are acceptable
+        if ( d === '' || d === null ) {
+            return 'moment-'+format;
+        }
+ 
+        return moment( d, format, true ).isValid() ?
+            'moment-'+format :
+            null;
+    } );
+ 
+    // Add sorting method - use an integer for the sorting
+    types.order[ 'moment-'+format+'-pre' ] = function ( d ) {
+        if ( d ) {
+            // Strip HTML tags and newline characters if possible
+            if ( d.replace ) {
+                d = d.replace(/(<.*?>)|(\r?\n|\r)/g, '');
+            }
+ 
+            // Strip out surrounding white space
+            d = $.trim( d );
+        }
+         
+        return !moment(d, format, true).isValid() ?
+            Infinity :
+            parseInt( moment( d, format, true ).format( 'x' ), 10 );
+    };
     $('#graph-patient-event-table').dataTable();
 
     avgVoidAmt /= voids;
