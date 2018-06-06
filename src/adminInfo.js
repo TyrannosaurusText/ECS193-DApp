@@ -36,13 +36,18 @@ function GatherAdmins ()
         for (var i = 0; i < resObj.length; i++)
         {
             var a = resObj[i];
+            var admin = {
+                familyName: a.familyName,
+                givenName: a.givenName,
+                email: a.email
+            };
             inner += '<tr><td>' + a.familyName
                    + '</td><td>' + a.givenName
                    + '</td><td>' + a.email
-                   + '</td><td><button class="admin-info-remove-btn" data-admin=' + JSON.stringify(a) + '>Remove</button>';
+                   + '</td><td><button class="admin-info-remove-btn" data-admin=' + JSON.stringify(admin) + '>Remove</button>';
 
             if (a.accType == 'admin')
-                inner += '</td><td><button class="admin-info-make-doctor-btn" data-admin=' + JSON.stringify(a) + '>Make Doctor</button>';
+                inner += '</td><td><button class="admin-info-make-doctor-btn" data-admin=' + JSON.stringify(admin) + '>Make Doctor</button>';
             else
                 inner += '</td><td>';
 

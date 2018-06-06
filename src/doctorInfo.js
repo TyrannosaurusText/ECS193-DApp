@@ -5,6 +5,7 @@ const BrowserWindow = remote.BrowserWindow;
 const ipcMain = remote.ipcMain;
 const url = require('url');
 const path = require('path');
+const moment = require('moment');
 
 var doctors = [];
 var postobj = null;
@@ -110,9 +111,12 @@ function MakeTable ()
         inner += '<tr><td>' + doctors[d].familyName 
                + '</td><td>' + doctors[d].givenName
                + '</td><td>' + d 
-               + '</td><td>' + doctors[d].patientCount
-               + '</td><td><button class="doctor-info-details-btn" data-info=' + JSON.stringify(doc) + '>Details</button>'
-               + '</td></tr>';
+               + '</td><td>' + doctors[d].patientCount;
+        if (settings.get('accType') == 'admin' || settings.get('accType') == 'adminDoctor')
+            inner += '</td><td><button class="doctor-info-details-btn" data-info=' + JSON.stringify(doc) + '>Details</button>';
+        else
+            inner += '</td><td>';
+        inner += '</td></tr>';
     };
     inner += '</tbody>';
 
@@ -177,7 +181,9 @@ function SetupDetailedView (doctor)
     }
 
     var lastLoginDiv = document.getElementById('doctor-info-last-login');
-    lastLoginDiv.innerHTML = 'Last Login: ' + doctor.lastLogin + ' ' + doctor.lastLoginTime + ' UTC';
+    var lastLogin = doctor.lastLogin + ' ' + doctor.lastLoginTime + ' +0000';
+    var lastLoginMoment = moment(lastLogin, 'YYYY-MM-DD hh:mm:ss Z');
+    lastLoginDiv.innerHTML = 'Last Login: ' + lastLoginMoment.format('lll');
 
     patients = [];
     viewing = doctor;
@@ -193,6 +199,12 @@ function SetupDetailedView (doctor)
         for (var i = 0; i < resObj.meta.length; i++)
         {
             var pat = resObj.meta[i];
+            var patient = {
+                id: pat.id,
+                familyName: pat.familyName,
+                givenName: pat.givenName,
+                email: pat.email
+            };
             if (pat.doctorEmail != viewing.email)
                 continue;
             patients.push(pat);
@@ -200,8 +212,8 @@ function SetupDetailedView (doctor)
                    + '</td><td>' + pat.familyName
                    + '</td><td>' + pat.givenName
                    + '</td><td>' + pat.email
-                   + '</td><td><button class="doctor-info-patient-transfer-btn" data-pat=' + JSON.stringify(pat) + '>Transfer</button>'
-                   + '</td><td><button class="doctor-info-patient-retire-btn" data-pat=' + JSON.stringify(pat) + '>Retire</button>'
+                   + '</td><td><button class="doctor-info-patient-transfer-btn" data-pat=' + JSON.stringify(patient) + '>Transfer</button>'
+                   + '</td><td><button class="doctor-info-patient-retire-btn" data-pat=' + JSON.stringify(patient) + '>Retire</button>'
                    + '</td></tr>';
         }
 

@@ -4,7 +4,7 @@ const loginHandler = require('./loginHandler.js');
 
 function post (postobj, postpath, callback)
 {
-    console.log('Posting to: ' + postpath);
+    //console.log('Posting to: ' + postpath);
     var response = '';
     var options = {
         //hostname: 'majestic-legend-193620.appspot.com',
@@ -32,8 +32,8 @@ function post (postobj, postpath, callback)
             concat += body;
         });
         res.on('end', () => {
-            console.log('Recieved:');
-            console.log(concat);
+            //console.log('Recieved:');
+            //console.log(concat);
             var resObj = JSON.parse(concat);
             if (resObj.hasOwnProperty('err'))
             {

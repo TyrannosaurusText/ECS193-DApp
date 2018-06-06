@@ -39,13 +39,19 @@ function GatherPatients ()
             if (resObj.meta[i].doctorEmail == '')
             {
                 var pat = resObj.meta[i];
+                var patient = {
+                    id: pat.id,
+                    familyName: pat.familyName,
+                    givenName: pat.givenName,
+                    email: pat.email
+                };
                 patients.push(pat);
                 inner += '<tr><td>' + pat.id
                        + '</td><td>' + pat.familyName
                        + '</td><td>' + pat.givenName
                        + '</td><td>' + pat.email
-                       + '</td><td><button class="unassigned-patient-assign-btn" data-pat=' + JSON.stringify(pat) + '>Assign</button>'
-                       + '</td><td><button class="unassigned-patient-remove-btn" data-pat=' + JSON.stringify(pat) + '>Remove</button>'
+                       + '</td><td><button class="unassigned-patient-assign-btn" data-pat=' + JSON.stringify(patient) + '>Assign</button>'
+                       + '</td><td><button class="unassigned-patient-remove-btn" data-pat=' + JSON.stringify(patient) + '>Remove</button>'
                        + '</td></tr>';
             }
         }

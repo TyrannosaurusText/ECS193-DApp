@@ -29,15 +29,21 @@ function bindButtons ()
 
     if (settings.get('email') == '')
     {
-        document.getElementById('button-oauth-signin').innerHTML = 'Sign In with Google';
+        document.getElementById('div-landing-login').align = 'center';
+        document.getElementById('button-oauth-signin').src = './assets/images/sign-in-button.png';
+        document.getElementById('button-oauth-signin').width = '236';
         document.getElementById('button-oauth-signin').addEventListener('click', loginHandler.signIn);
     }
     else
     {
-        document.getElementById('button-oauth-signin').innerHTML = 'Sign Out';
+        document.getElementById('div-landing-login').align = 'left';
+        document.getElementById('button-oauth-signin').src = './assets/images/sign-out-button.png';
+        document.getElementById('button-oauth-signin').width = '114';
         document.getElementById('button-oauth-signin').addEventListener('click', loginHandler.signOut);
 
         document.getElementById('graph-patient-back-btn').addEventListener('click', ReturnToListBtn);
+
+        document.getElementById('reading-data-time').addEventListener('change', ShowReadings);
     }
 
     CreateInterface();
@@ -83,7 +89,7 @@ function CreateInterface ()
                     var tag = '';
                     if (tags[pat.id])
                         tag = tags[pat.id];
-                    //console.log(pat);
+                    console.log(pat);
                     var date = pat.lastLogin;
                     pat.lastLogin = date.substring(0, 10);
                     pat.lastLoginTime = date.substring(11, 19);
@@ -133,6 +139,9 @@ function ReturnToList (source)
 function SetupDetailedView (patient)
 {
     viewing = patient;
+    console.log(patient);
+
+    document.getElementById('patient-header').innerHTML = patient.familyName + ', ' + patient.givenName;
 
     var postobj = {
         authCode: settings.get('authCode'),
@@ -156,12 +165,7 @@ function SetupDetailedView (patient)
         });
     });
     CompileNotes(patient);
-    poster.post(postobj, '/fetch/readings', function (resObj) {
-        var csv = csvParse(resObj.csv, { comment: '#' }, function (err, output) {
-            ChartCSV(output, patient);
-            ShowTable(output, patient);
-        });
-    });
+    ShowReadings();
 }
 
 function TaggingArea (tags, patientID)
@@ -205,7 +209,58 @@ function TaggingArea (tags, patientID)
     }
 }
 
-function ChartCSV (output, patient)
+function ShowReadings ()
+{
+    var postobj = {
+        authCode: settings.get('authCode'),
+        id: viewing.id
+    };
+    poster.post(postobj, '/fetch/readings', function (resObj) {
+        var csv = csvParse(resObj.csv, { comment: '#' }, function (err, output) {
+            var since = document.getElementById("reading-data-time").value;
+            console.log("since: " + since);
+            console.log(output);
+
+            var examine = [];
+            if (since != 'all')
+            {
+                var compareDate = moment();
+                if (since == 'day') compareDate.subtract(1, 'day');
+                else if (since == 'week') compareDate.subtract(1, 'week');
+                else if (since == 'month') compareDate.subtract(1, 'month');
+                for (var i = 0; i < output.length; i++)
+                {
+                    var readingTime = output[i][0].toString() + ' +0000';
+                    var readingMoment = moment(readingTime, 'YYYY-MM-DD hh:mm:ss Z');
+                    if (!readingMoment.isBefore(compareDate))
+                    {
+                        var newReading = output[i];
+                        var avg = 0;
+                        var amt = 0;
+                        for (var j = 1; j < newReading.length - 2; j++)
+                        {
+                            avg += parseFloat(newReading[j]);
+                            amt++;
+                        }
+                        avg /= amt;
+                        newReading.splice(1, 0, avg);
+                        examine.push(newReading);
+                    }
+                }
+
+                console.log(compareDate);
+                console.log(examine);
+            }
+            else
+                examine = output;
+
+            ChartCSV(examine, viewing, since);
+            ShowTable(examine, viewing, since);
+        });
+    });
+}
+
+function ChartCSV (output, patient, since)
 {
     var area = document.getElementById('graph-patient-chart-area');
     area.innerHTML = '';
@@ -275,6 +330,15 @@ function ChartCSV (output, patient)
             }
         }
     };
+    var avgObj = {
+        label: 'Volume',
+        backgroundColor: 'rgba(  0,  0,  0, 1)',
+        borderColor: 'rgba(  0,  0,  0, 1)',
+        data: [],
+        fill: false,
+        hidden: false
+    };
+    config.data.datasets.push(avgObj);
     for (var i = 0; i < globals.channelAmt; i++)
     {
         var datasetObj = {
@@ -289,14 +353,19 @@ function ChartCSV (output, patient)
     }
     for (var i = 0; i < output.length; i++)
     {
-        for (var j = 1; j < output[i].length; j++)
+        var dateStr = output[i][0].toString() + '+0000';
+        //console.log(dateStr);
+        config.data.datasets[0].data.push({
+            x: moment(dateStr, 'YYYY-MM-DD hh:mm:ss Z'),
+            y: output[i][1]
+        });
+        for (var j = 2; j < output[i].length - 2; j++)
         {
-            var ch = j - 1;
-            var dateStr = output[i][0].toString();
-            dateStr = dateStr.substring(0, dateStr.length - 6); //remove postfix ' (UTC)'
+            var ch = j - 2;
+            dateStr = output[i][0].toString() + '+0000';
             //console.log(dateStr);
-            config.data.datasets[ch].data.push({
-                x: moment(dateStr, 'ddd MMM DD YYYY hh:mm:ss Z'),
+            config.data.datasets[ch + 1].data.push({
+                x: moment(dateStr, 'YYYY-MM-DD hh:mm:ss Z'),
                 y: parseFloat(output[i][j])
             });
         }
@@ -306,7 +375,7 @@ function ChartCSV (output, patient)
     var patientChart = new Chart(ctx, config);
 }
 
-function ShowTable (output, patient)
+function ShowTable (output, patient, since)
 {
     var area = document.getElementById('graph-patient-table-area');
     area.innerHTML = '';
@@ -315,7 +384,7 @@ function ShowTable (output, patient)
     area.appendChild(table);
 
     var inner = '';
-    inner += '<thead><tr><th>Timestamp</th>';
+    inner += '<thead><tr><th>Timestamp</th><th>Volume</th>';
     for (var i = 0; i < globals.channelAmt; i++)
         inner += '<th>CH' + i.toString() + '</th>';
     inner += '</tr></thead><tbody>';
@@ -324,13 +393,14 @@ function ShowTable (output, patient)
     {
         inner += '<tr><td>';
 
-        var dateStr = output[i][0].toString();
-        dateStr = dateStr.substring(0, dateStr.length - 6);
-        var mmt = moment(dateStr, 'ddd MMM DD YYYY hh:mm:ss Z');
+        var dateStr = output[i][0].toString() + ' +0000';
+        var mmt = moment(dateStr, 'YYYY-MM-DD hh:mm:ss Z');
         inner += mmt.format('lll');
-
         inner += '</td>'
-        for (var j = 1; j < output[i].length; j++)
+
+        inner += '<td>' + output[i][1].toFixed(2) + 'ml</td>'
+
+        for (var j = 2; j < output[i].length - 2; j++)
             inner += '<td>' + parseFloat(output[i][j]).toFixed(2).toString() + '</td>'
         inner += '</tr>';
     }
@@ -488,21 +558,31 @@ function constructEventTable(csv, patient)
     };
     $('#graph-patient-event-table').dataTable();
 
-    avgVoidAmt /= voids;
+    if (voids > 0)
+        avgVoidAmt /= voids;
     tempTime = moment.duration(avgVoidTime);
+    var timeDisplay = tempTime.humanize(false);
+    if (voids == 0)
+        timeDisplay = 'N/A';
+
+    //Convert last login to local time
+    var lastLogin = patient.lastLogin + ' ' + patient.lastLoginTime + ' +0000';
+    //var readingMoment = moment(readingTime, 'ddd MMM DD YYYY hh:mm:ss Z');
+    //moment("2010-10-20 4:30 +0000", "YYYY-MM-DD HH:mm Z");
+    var lastLoginMoment = moment(lastLogin, 'YYYY-MM-DD hh:mm:ss Z');
 
     var avgs = document.getElementById('patient-event-avg');
     avgs.innerHTML = '<h3>Events</h3><br>';
-    avgs.innerHTML += 'Last Login: ' + patient.lastLogin + ' ' + patient.lastLoginTime + ' UTC';
-    avgs.innerHTML += '<br>Average Time Between Voids: ' + tempTime.humanize(false);
-    avgs.innerHTML += '<br>Average Void Amount: ' + avgVoidAmt + 'ml';
+    avgs.innerHTML += 'Last Login: ' + lastLoginMoment.format('lll');
+    avgs.innerHTML += '<br>Average Time Between Voids: ' + timeDisplay;
+    avgs.innerHTML += '<br>Average Void Amount: ' + avgVoidAmt.toFixed(0) + 'ml';
 }
 
 function CompileNotes (patient)
 {
     var noteobj = {
         authCode: settings.get('authCode'),
-        id: settings.get('id')
+        id: patient.id
     };
     poster.post(noteobj, '/fetch/notes', function (resObj) {
         //console.log(resObj);
@@ -515,10 +595,11 @@ function CompileNotes (patient)
         area.appendChild(table);
 
         var inner = '<thead><tr><th>Date</th><th>Note</th></tr></thead><tbody>';
-        Array.prototype.forEach.call(resObj, function (n) {
-            if (n.patientID == patient.id)
-                inner += '<tr><td>' + n.timestamp.substring(0,10) + '</td><td>' + n.note + '</td></tr>';
-        });
+        for (var i = 0; i < resObj.notes.length; i++)
+        {
+            inner += '<tr><td>' + resObj.notes[i].timestamp.substring(0,10) + '</td>' + 
+                         '<td>' + resObj.notes[i].msg + '</td></tr>';
+        }
         inner += '</tbody>';
 
         table = document.getElementById('patient-notes-table');
@@ -538,8 +619,7 @@ function InsertNote ()
 {
     var postobj = {
         authCode: settings.get('authCode'),
-        id: settings.get('id'),
-        patientID: viewing.id,
+        id: viewing.id,
         note: document.getElementById('patient-note-new').value
     };
     poster.post(postobj, '/insert/note', cb);
