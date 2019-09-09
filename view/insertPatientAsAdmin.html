@@ -1,0 +1,22 @@
+<template class="task-template-admin">
+    <section id="section-insert-patient-as-admin" class="section js-section">
+        <header>
+            <h1>Insert Patient</h1>
+        </header>
+        <div>
+            Doctor: <select id="insert-patient-doctor-select"></select>
+            <form id="insert-patient-as-admin-form">
+                Name: <input type="text" name="name"><br>
+                Email: <input type="email" name="email"><br>
+            </form>
+            <button id="insert-patient-as-admin">Send Activation Link</button>
+        </div>
+        <div id="insert-patient-as-admin-response">
+            
+        </div>
+        <script>
+            var ipaa = require('./src/insertPatientAsAdmin');
+            ipaa.Bind();
+        </script>
+    </section>
+</template>

@@ -4,16 +4,20 @@
         <meta charset="utf-8">
 
         <link rel="stylesheet" type="text/css" href="assets/css/style.css">
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
 
         <link rel="import" href="view/landing.html" data-section="landing" data-label="Landing">
-        <link rel="import" href="view/insertDoctor.html" data-section="insert-doctor" data-label="Insert Doctor">
-        <link rel="import" href="view/insertPatient.html" data-section="insert-patient" data-label="Insert Patient">
-        <link rel="import" href="view/graphPatient.html" data-section="graph-patient" data-label="Graph Patient">
+        <link rel="import" href="view/adminInfo.html" data-section="admin-info" data-label="Admin Information">
+        <link rel="import" href="view/doctorInfo.html" data-section="doctor-info" data-label="Doctor Information">
+        <link rel="import" href="view/unassigned.html" data-section="unassigned" data-label="Unassigned Patients">
+        <link rel="import" href="view/insertFaculty.html" data-section="insert-faculty" data-label="Insert Staff">
+
+        <title>NIBVA</title>
     </head>
     <body>
         <div class="nav" id="nav">
             <header class="nav-header">
-                <h1 class="nav-title">Application</h1>
+                <h1 class="nav-title">NIBVA</h1>
             </header>
             <div id="nav-button-holder">
                 <button type="button" id="button-landing" data-section="landing" class="nav-button is-selected">Landing</button>

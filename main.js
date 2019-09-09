@@ -5,20 +5,20 @@ const url = require('url');
 
 const { app, BrowserWindow, Menu } = electron;
 
-app.setName('Electron Test');
+app.setName('NIBVA');
 
 var win = null;
 
-app.on('ready', function ()
-{
-    settings.set('accessToken', '');
-    settings.set('refreshToken', '');
-    settings.set('email', 'NULL');
+app.on('ready', () => {
+    settings.set('clientID', '671445578517-io87npos82nmk6bk24ttgikc9h4uls4l.apps.googleusercontent.com');
+    settings.set('signedIn', false);
+    settings.set('authCode', '');
+    settings.set('email', '');
     settings.set('accType', '');
     settings.set('name', '');
 
     win = new BrowserWindow({
-        width: 1080,
+        width: 1280,
         height: 720,
         minWidth: 720,
         minHeight: 600, 
@@ -34,19 +34,16 @@ app.on('ready', function ()
     var menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
 
-    win.on('closed', function()
-    {
-        settings.set('accessToken', '');
-        settings.set('refreshToken', '');
-        settings.set('email', 'NULL');
-        settings.set('accType', '');
-        settings.set('name', '');
+    win.on('close', (event) => {
+        win.webContents.send('close', 'signout');
+    });
+
+    win.on('closed', () => {
         app.quit();
     });
 });
 
-app.on('window-all-closed', function ()
-{
+app.on('window-all-closed', () => {
     app.quit();
 });
 

@@ -1,15 +1,45 @@
 <template class="task-template-landing">
     <section id="section-landing" class="section js-section is-shown">
-        <header>
-            <h1>Landing</h1>
-        </header>
-        <div id="div-landing-login">
-            <button id="button-oauth-signin">Sign In with Google</button>
-            <button id="button-test-email">Test Email</button>
+        <div class="landing-view is-shown" id="landing-list-view">
+            <div id="div-landing-login">
+                <input id="button-oauth-signin" type="image" width="236" height="44"/>
+            </div>
+            <div id="landing-doctor-info">
+                <div id="landing-patient-area" class="landing-patient-area">
+                
+                </div>
+            </div>
         </div>
+        <div class="landing-view" id="landing-patient-view">
+            <h1 id="patient-header">Landing</h1>
+            <button id="graph-patient-back-btn">Go Back</button>
+            <div id="patient-tagging-area"></div>
+            <div id="patient-event-avg"></div>
+            <div id="graph-patient-event" class = "graph-patient-event">
+            
+            </div>
+            <div id="patient-notes-area" class="patient-notes-area">
+                
+            </div>
+            <h2>Patient Readings</h2>
+            <select id="reading-data-time">
+                <option value="day">Past Day</option>
+                <option value="week">Past Week</option>
+                <option value="month">Past Month</option>
+                <option value="all">All Time</option>
+            </select>
+            <div id="graph-patient-chart-area" class="graph-patient-chart-area">
+        
+            </div>
+            <div id="graph-patient-table-area" class="graph-patient-table-area">
+                
+            </div>
+            <div><br></div>
+        </div>
+        <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
         <script>
-            var login = require('./src/login.js');
-            login.bindButtons();
+            var landing = require('./src/landing.js');
+            landing.bindButtons();
         </script>
     </section>
 </template>

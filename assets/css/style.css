@@ -101,23 +101,88 @@ html {
     transition: visibility 0s 0s linear , opacity .36s ease-out, transform .36s ease-out;
 }
 
+/*Landing*/
+
+.landing-view {
+    position: absolute;
+    top: 50;
+    width: calc(100% - 40px);
+
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+}
+.landing-view.is-shown {
+    pointer-events: inherit;
+    visibility: visible;
+    opacity: 1;
+}
+
+.patient-notes-area {
+    overflow-x: scroll;
+    white-space: nowrap;
+}
+
+/*Doctor Info*/
+
+.doctor-info-view {
+    position: absolute;
+    top: 50;
+
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+}
+.doctor-info-view.is-shown {
+    pointer-events: inherit;
+    visibility: visible;
+    opacity: 1;
+}
+
+.doctor-info-table-area {
+    width: auto;
+    overflow-x: scroll;
+    white-space: nowrap;
+}
+
+/*Unassigned Patients*/
+
+.unassigned-table-area {
+    width: auto;
+    overflow-x: scroll;
+    white-space: nowrap;
+}
+
 /*Patient Graph*/
 
-table#graph-patient-table {
+.graph-patient-chart-area {
+    width: 100%;
+    height: 1000px;
+}
+
+.graph-patient-table-area {
+    width: auto;
+    overflow-x: scroll;
+    white-space: nowrap;
+}
+
+/*Tables*/
+
+table {
     width: 100%;
     border: 1px solid var(--color-border);
 }
 
-table#graph-patient-table th {
+table th {
     text-align: left;
     padding: 3px;
 }
 
-table#graph-patient-table td {
+table td {
     text-align: left;
     padding: 3px;
 }
 
-table#graph-patient-table tr:nth-child(even) {
+table tr:nth-child(even) {
     background-color: var(--color-bg);
 }

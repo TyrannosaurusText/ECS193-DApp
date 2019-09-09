@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Insert Patient</title>
+    </head>
+    <body>
+        <form id="insert-patient-popup-form">
+            Family Name: <input type="text" name="familyName"><br>
+            Given Name: <input type="text" name="givenName"><br>
+            Email: <input type="email" name="email">
+        </form>
+        <button id="insert-patient-popup-btn">Send Activation Link</button>
+        <div id="insert-patient-popup-response"></div>
+    </body>
+    <script>
+        require('./../../src/popups/insertPatient');
+    </script>
+</html>

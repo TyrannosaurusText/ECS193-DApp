@@ -1,4 +1,4 @@
-var channelAmt = 4;
+var channelAmt = 64;
 
 var channelColors = [ //colors from http://godsnotwheregodsnot.blogspot.ru/2012/09/color-distribution-methodology.html
     'rgba(  0,  0,  0,0.6)',

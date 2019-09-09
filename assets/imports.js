@@ -32,6 +32,8 @@ function loadImports ()
     {
         Array.prototype.forEach.call(links, function(link) {
             var template = link.import.querySelector('.task-template-admin');
+            if (template == null)
+                template = link.import.querySelector('.task-template-admin');
             if (template != null)
             {
                 var btn = document.createElement('button');
@@ -47,7 +49,7 @@ function loadImports ()
             }
         });
     }
-    if (accType == 'doctor' || accType == 'adminDoctor')
+    if (accType == 'doctor')
     {
         Array.prototype.forEach.call(links, function(link) {
             var template = link.import.querySelector('.task-template-doctor');
